@@ -1289,7 +1289,7 @@ async function call(method, path, body, isForm) {
   if (!isForm) headers['Content-Type'] = 'application/json';
   const opts = { method, headers };
   if (body) opts.body = isForm ? body : JSON.stringify(body);
-  const r = await fetch('http://localhost:3000/api' + path, opts);
+  const r = await fetch('/api' + path, opts);
   if (r.status === 401 || r.status === 403) { Auth.clear(); window.location.href = '../index.html'; }
   const j = await r.json();
   if (!j.success) throw new Error(j.message || 'Request failed');
