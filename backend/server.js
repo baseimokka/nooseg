@@ -20,6 +20,10 @@ if (process.env.JWT_SECRET.length < 32 || process.env.JWT_SECRET === 'noos_super
 const app = express();
 app.disable('x-powered-by');
 
+// Behind the Nginx reverse proxy. Trust the first proxy hop so client IPs and
+// X-Forwarded-* headers resolve correctly (required by express-rate-limit).
+app.set('trust proxy', 1);
+
 // Security headers. CSP is disabled here because the frontend relies on inline
 // scripts/styles and CDN assets; add a tailored CSP before public launch.
 app.use(helmet({ contentSecurityPolicy: false }));
@@ -49,6 +53,11 @@ app.get('*', (req, res) => {
 // Error handler — log the full error server-side, return a generic message
 app.use((err, req, res, next) => {
   console.error(err.stack);
+  // A UNIQUE constraint was violated (e.g. duplicate product SKU, category slug,
+  // coupon code) — return a clear 409 instead of a generic 500.
+  if (err && err.code === 'ER_DUP_ENTRY') {
+    return res.status(409).json({ success: false, message: 'That value already exists — please use a unique SKU / slug / code.' });
+  }
   res.status(500).json({ success: false, message: 'Server error' });
 });
 
