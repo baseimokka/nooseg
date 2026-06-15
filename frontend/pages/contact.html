@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <style>
+    body { background: var(--paper); color: var(--ink); }
+
+    .contact-header { background: var(--warmdark); padding: clamp(56px,9vw,120px) clamp(24px,6vw,48px); text-align: center; position: relative; overflow: hidden; }
+    .contact-header__ghost { font-family: var(--f-lux); font-size: clamp(120px,24vw,360px); color: var(--ivory-10); position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); line-height: 1; pointer-events: none; user-select: none; white-space: nowrap; }
+    .contact-header > *:not(.contact-header__ghost) { position: relative; z-index: 1; }
+    .contact-header__eyebrow { font-family: var(--fb); font-size: 11px; font-weight: 500; letter-spacing: 0.42em; text-transform: uppercase; color: var(--sage); margin-bottom: 16px; }
+    .contact-header h1 { font-family: var(--f-lux); font-weight: 400; font-size: clamp(44px,7vw,96px); color: var(--ivory); letter-spacing: 0.03em; line-height: 0.92; margin-bottom: 16px; }
+    .contact-header p { font-family: var(--fb); font-size: 14px; font-weight: 300; color: var(--ivory-60); }
+
+    .contact-content { display: grid; grid-template-columns: 1fr 1fr; }
+
+    .contact-info { background: var(--warmdark); padding: clamp(40px,5vw,72px) clamp(26px,4vw,52px); }
+    .contact-info-item { display: flex; gap: 16px; margin-bottom: 32px; }
+    .contact-info-item i { font-size: 20px; color: var(--sage); flex-shrink: 0; margin-top: 2px; }
+    .contact-info-label { font-family: var(--fb); font-size: 10px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--sage); margin-bottom: 6px; }
+    .contact-info-value { font-family: var(--fb); font-size: 13px; color: var(--ivory-60); line-height: 1.7; }
+    .contact-social { display: flex; gap: 16px; margin-top: 24px; padding-top: 28px; border-top: 1px solid var(--ivory-10); }
+    .contact-social a { font-size: 19px; color: var(--ivory-40); transition: color .25s ease; }
+    .contact-social a:hover { color: var(--ivory); }
+
+    .contact-form { background: var(--paper); padding: clamp(40px,5vw,72px) clamp(24px,4vw,52px); }
+    .contact-form__eyebrow { font-family: var(--fb); font-size: 11px; font-weight: 500; letter-spacing: 0.34em; text-transform: uppercase; color: var(--grn2); margin-bottom: 14px; display: block; }
+    .contact-form h2 { font-family: var(--f-lux); font-weight: 400; font-size: clamp(30px,3.5vw,48px); letter-spacing: 0.02em; color: var(--ink); margin-bottom: 28px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+    .contact-form .form-input, .contact-form .form-select, .contact-form .form-textarea { background: var(--card); border-color: var(--hair-d); }
+    @media (max-width: 768px) {
+      .contact-content { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <script src="../js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <!-- Header -->
+  <div class="contact-header">
+    <span class="contact-header__ghost" aria-hidden="true">NOOS</span>
+    <div class="contact-header__eyebrow">We're Listening</div>
+    <h1>Get In Touch</h1>
+    <p>We usually reply within 2 hours on business days.</p>
+  </div>
+
+  <!-- Content -->
+  <div class="contact-content">
+    <!-- Info -->
+    <div class="contact-info">
+      <div class="contact-info-item">
+        <i class="ti ti-map-pin"></i>
+        <div>
+          <div class="contact-info-label">Location</div>
+          <div class="contact-info-value">Cairo, Egypt<br>Heliopolis District</div>
+        </div>
+      </div>
+      <div class="contact-info-item">
+        <i class="ti ti-mail"></i>
+        <div>
+          <div class="contact-info-label">Email</div>
+          <div class="contact-info-value">hello@noos.eg<br>support@noos.eg</div>
+        </div>
+      </div>
+      <div class="contact-info-item">
+        <i class="ti ti-phone"></i>
+        <div>
+          <div class="contact-info-label">Phone / WhatsApp</div>
+          <div class="contact-info-value">+20 100 000 0000</div>
+        </div>
+      </div>
+      <div class="contact-info-item">
+        <i class="ti ti-clock"></i>
+        <div>
+          <div class="contact-info-label">Hours</div>
+          <div class="contact-info-value">Sat – Thu · 10am – 8pm</div>
+        </div>
+      </div>
+      <div class="contact-social">
+        <a href="#"><i class="ti ti-brand-instagram"></i></a>
+        <a href="#"><i class="ti ti-brand-tiktok"></i></a>
+        <a href="#"><i class="ti ti-brand-facebook"></i></a>
+        <a href="#"><i class="ti ti-brand-whatsapp"></i></a>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div class="contact-form">
+      <span class="contact-form__eyebrow">Drop Us a Line</span>
+      <h2>Send a Message</h2>
+      <form onsubmit="sendMessage(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input class="form-input" id="ct-name" type="text" placeholder="Ahmed Hassan" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input class="form-input" id="ct-email" type="email" placeholder="you@example.com" required>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px;">
+          <label class="form-label">Subject</label>
+          <select class="form-select" id="ct-subject">
+            <option value="order">Order Issue</option>
+            <option value="return">Return Request</option>
+            <option value="product">Product Question</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label class="form-label">Message</label>
+          <textarea class="form-textarea" id="ct-message" style="height:100px;" placeholder="Write your message here..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;justify-content:center;gap:8px;">
+          <i class="ti ti-send"></i> Send Message
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    document.getElementById('nav-root').innerHTML = renderNav('contact');
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    function sendMessage(e) {
+      e.preventDefault();
+      Toast.success('Message sent! We\'ll reply within 2 hours.');
+      ['ct-name','ct-email','ct-message'].forEach(id => document.getElementById(id).value = '');
+    }
+  </script>
+</body>
+</html>

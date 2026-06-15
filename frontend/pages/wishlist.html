@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wishlist — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <style>
+    .wishlist-page { padding: clamp(40px,6vw,80px) clamp(20px,5vw,48px); }
+    .wishlist-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: clamp(28px,4vw,44px); }
+    .wishlist-eyebrow { font-family: var(--fb); font-size: 11px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: var(--grn2); margin-bottom: 14px; display: block; }
+    .wishlist-title { font-family: var(--f-lux); font-weight: 400; font-size: clamp(40px,5.5vw,82px); line-height: .92; letter-spacing: .02em; color: var(--ink); }
+    .wishlist-count { font-family: var(--fb); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-50); white-space: nowrap; }
+    .wishlist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(10px,1.6vw,20px); }
+    @media (max-width: 1100px) { .wishlist-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 760px) { .wishlist-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; } }
+    .wish-card {
+      background: var(--card);
+      border: 1px solid var(--hair-d);
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+    }
+    .wish-card:hover {
+      border-color: rgba(107,122,90,0.4);
+      box-shadow: 0 22px 50px rgba(28,28,26,0.16);
+      transform: translateY(-4px);
+    }
+    .wish-card__img {
+      aspect-ratio: 3/4;
+      background: var(--paper2);
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .wish-card__img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+    .wish-card:hover .wish-card__img img { transform: scale(1.05); }
+    .wish-remove {
+      position: absolute; top: 0; right: 0;
+      width: 30px; height: 30px;
+      background: rgba(13,13,13,0.65);
+      border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      z-index: 2;
+      transition: background 0.2s ease;
+    }
+    .wish-remove:hover { background: var(--red); }
+    .wish-remove i { font-size: 13px; color: #fff; }
+    .wish-card__info { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 0; }
+    .wish-card .product-card__cat { color: var(--grn2); }
+  </style>
+</head>
+<body class="lux-page">
+  <script src="../js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a>
+    <i class="ti ti-chevron-right"></i>
+    <span class="current">Wishlist</span>
+  </div>
+
+  <div class="wishlist-page">
+    <div class="wishlist-header">
+      <div>
+        <span class="wishlist-eyebrow">Saved For Later</span>
+        <h1 class="wishlist-title">My Wishlist</h1>
+      </div>
+      <span class="wishlist-count" id="wish-count"></span>
+    </div>
+    <div class="wishlist-grid" id="wish-grid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Loading...</div>
+    </div>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    document.getElementById('nav-root').innerHTML = renderNav('');
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    if (!Auth.isLoggedIn()) { window.location.href = '../index.html'; }
+
+    async function loadWishlist() {
+      try {
+        const items = await API.getWishlist();
+        document.getElementById('wish-count').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+        const grid = document.getElementById('wish-grid');
+        if (!items.length) {
+          grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:60px 20px;">
+              <i class="ti ti-heart" style="font-size:48px;color:var(--border2);display:block;margin-bottom:12px;"></i>
+              <p style="color:var(--muted);">Your wishlist is empty.</p>
+              <a href="shop.html" class="btn-primary" style="margin-top:16px;display:inline-flex;">Shop Now</a>
+            </div>
+          `;
+          return;
+        }
+        grid.innerHTML = items.map(item => {
+          const hasDiscount = item.old_price && Number(item.old_price) > Number(item.price);
+          const discPct = hasDiscount ? Math.round((1 - Number(item.price) / Number(item.old_price)) * 100) : 0;
+          return `
+          <div class="wish-card">
+            <div class="wish-card__img">
+              ${item.image_url ? `<img src="${item.image_url}" alt="${item.name}" loading="lazy">` : `<i class="ti ti-shirt" style="font-size:52px;color:var(--border2);opacity:0.55"></i>`}
+              ${item.badge ? `<span class="product-card__badge badge-${item.badge}">${item.badge}</span>` : ''}
+              <button class="wish-remove" onclick="removeItem(${item.product_id})"><i class="ti ti-x"></i></button>
+            </div>
+            <div class="wish-card__info">
+              <div class="product-card__cat" style="margin-bottom:3px;">${item.category_name || 'NOOS'}</div>
+              <div class="product-card__name" style="margin-bottom:6px;">${item.name}</div>
+              <div class="product-card__price" style="margin-bottom:10px;flex-wrap:wrap;">
+                <span class="price-current">EGP ${Number(item.price).toFixed(0)}</span>
+                ${hasDiscount ? `<span class="price-old">EGP ${Number(item.old_price).toFixed(0)}</span>` : ''}
+                ${discPct > 0 ? `<span class="price-discount">-${discPct}%</span>` : ''}
+              </div>
+              <a href="product.html?id=${item.product_id}" class="btn-primary" style="width:100%;justify-content:center;margin-top:auto;">View Product</a>
+            </div>
+          </div>
+        `}).join('');
+      } catch (err) {
+        document.getElementById('wish-grid').innerHTML = '<div style="grid-column:1/-1;color:var(--red);text-align:center;padding:40px;">Failed to load wishlist.</div>';
+      }
+    }
+
+    async function removeItem(productId) {
+      try {
+        await API.removeWishlist(productId);
+        Toast.success('Removed from wishlist');
+        loadWishlist();
+      } catch (err) { Toast.error(err.message); }
+    }
+
+    loadWishlist();
+  </script>
+</body>
+</html>

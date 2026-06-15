@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOOS — Never Out Of Stock</title>
+  <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="css/global.css">
+  <link rel="stylesheet" href="css/nav.css">
+  <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/shop.css">
+</head>
+<body class="home-page">
+  <script src="js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <!-- ═══ HERO MEDIA SYSTEM (CMS-driven; populated from HERO_SLIDES) ═══ -->
+  <section class="hero" id="hero" aria-label="NOOS campaign">
+    <div class="hero__slides" id="hero-slides"></div>
+    <div class="hero__dots" id="hero-dots"></div>
+    <div class="hero__cue">Scroll</div>
+  </section>
+
+  <!-- Announcement Strip -->
+  <div id="strip-root"></div>
+
+  <main class="home-lux">
+
+    <!-- 1 · Best Sellers -->
+    <section class="section reveal">
+      <div class="section-head">
+        <div>
+          <span class="section-eyebrow">Most Wanted</span>
+          <h2 class="section-title">Best Sellers</h2>
+        </div>
+        <a href="pages/shop.html?badge=bestseller" class="section-link">View All →</a>
+      </div>
+      <div class="home-products-grid" id="bestsellers-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+      </div>
+    </section>
+
+    <!-- 2 · Featured Collections -->
+    <section class="section reveal">
+      <div class="section-head">
+        <div>
+          <span class="section-eyebrow">SS 26</span>
+          <h2 class="section-title">Featured Collections</h2>
+        </div>
+        <a href="pages/collections.html" class="section-link">All Collections →</a>
+      </div>
+      <div class="collections-grid" id="collections-grid"></div>
+    </section>
+
+    <!-- 3 · New Arrivals -->
+    <section class="section reveal">
+      <div class="section-head">
+        <div>
+          <span class="section-eyebrow">Just In</span>
+          <h2 class="section-title">New Arrivals</h2>
+        </div>
+        <a href="pages/shop.html?badge=new" class="section-link">View All →</a>
+      </div>
+      <div class="home-products-grid" id="new-arrivals-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+      </div>
+    </section>
+
+    <!-- 4 · Brand Story -->
+    <section class="section story reveal" style="padding:0;">
+      <div class="story__media">
+        <span class="story__media-ghost">NOOS</span>
+      </div>
+      <div class="story__body">
+        <span class="section-eyebrow">Est. Cairo — 2024</span>
+        <h2 class="story__title">Built for every day.<br><em>Never out of stock.</em></h2>
+        <p class="story__p">NOOS began with a simple frustration: the pieces you wear most are the first to disappear. So we built a house around permanence — heavyweight cotton, considered cuts, and core styles restocked the moment they sell out.</p>
+        <p class="story__p">No drops you'll miss. No "sold out" on the staple you reach for daily. Just quietly excellent menswear, always in your size.</p>
+        <div class="story__sign">NOOS</div>
+      </div>
+    </section>
+
+    <!-- 5 · Customer Benefits -->
+    <section class="section reveal">
+      <div class="section-head">
+        <div>
+          <span class="section-eyebrow">The NOOS Promise</span>
+          <h2 class="section-title">Why NOOS</h2>
+        </div>
+      </div>
+      <div class="benefits-grid">
+        <div class="benefit"><i class="ti ti-refresh"></i><h4>Always In Stock</h4><p>Core styles restocked weekly. Never miss your size.</p></div>
+        <div class="benefit"><i class="ti ti-award"></i><h4>Premium Quality</h4><p>Heavyweight cotton and considered fabrics, at fair prices.</p></div>
+        <div class="benefit"><i class="ti ti-truck"></i><h4>Fast Delivery</h4><p>Same-day dispatch from Cairo. Nationwide COD.</p></div>
+        <div class="benefit"><i class="ti ti-shield-check"></i><h4>Easy Returns</h4><p>14-day returns. No questions asked.</p></div>
+      </div>
+    </section>
+
+    <!-- 6 · Newsletter -->
+    <section class="section newsletter reveal">
+      <div class="newsletter__eyebrow">Join The Club</div>
+      <h2 class="newsletter__title">10% Off Your First Order</h2>
+      <p class="newsletter__sub">New arrivals, private restocks, and styling notes — straight to your inbox.</p>
+      <form class="newsletter__form" onsubmit="handleNewsletter(event)">
+        <input class="newsletter__input" id="nl-email" type="email" placeholder="your@email.com" required>
+        <button type="submit" class="newsletter__btn">Subscribe →</button>
+      </form>
+    </section>
+
+  </main>
+
+  <div id="footer-root"></div>
+
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/layout.js"></script>
+  <script>
+    /* ════════════════════════════════════════════════════════════
+       HERO MEDIA SYSTEM
+       This array is the contract the admin CMS will populate.
+       Each slide supports an image OR a video, separate desktop &
+       mobile assets, full editorial copy, and two CTAs. Disabled
+       slides are skipped; `order` controls sequence. No code change
+       is ever required to add, edit, reorder, or remove a slide.
+       ════════════════════════════════════════════════════════════ */
+    const DEFAULT_HERO_SLIDES = [
+      {
+        id: 1, enabled: true, order: 1, mediaType: 'image',
+        desktop: { image: 'images/hero-ss26.avif', video: '' },
+        mobile:  { image: 'images/hero-ss26.avif', video: '' },
+        label: 'Summer Collection 2026',
+        title: 'NOOS',
+        subtitle: 'Never Out Of Stock',
+        description: 'Premium essentials designed for everyday wear — restocked the moment they sell out.',
+        primary:   { label: 'Shop Now', href: 'pages/shop.html' },
+        secondary: { label: 'Explore Collection', href: 'pages/shop.html' }
+      },
+      {
+        id: 2, enabled: true, order: 2, mediaType: 'none',
+        desktop: { image: '', video: '' },
+        mobile:  { image: '', video: '' },
+        label: 'The Essentials',
+        title: 'Quietly Excellent',
+        subtitle: 'Wardrobe, refined.',
+        description: 'Heavyweight cotton, considered cuts, and a colour story built to last beyond a season.',
+        primary:   { label: 'Shop The Edit', href: 'pages/shop.html' },
+        secondary: { label: 'Our Story', href: 'pages/about.html' }
+      }
+    ];
+
+    const HERO_DURATION = 6500; // ms per slide — cinematic, 5–7s
+
+    (async function initHero() {
+      let slides;
+      try { slides = await API.getHero(); } catch { slides = []; }
+      if (!slides || !slides.length) slides = DEFAULT_HERO_SLIDES;   // CMS empty → built-in default
+      slides = slides.filter(s => s.enabled).sort((a, b) => a.order - b.order);
+      const stage  = document.getElementById('hero-slides');
+      const dotsEl = document.getElementById('hero-dots');
+      if (!stage || !slides.length) return;
+
+      const isMobile = () => window.matchMedia('(max-width: 760px)').matches;
+      const reduce   = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+      function mediaHTML(slide) {
+        const src = isMobile() ? slide.mobile : slide.desktop;
+        const alt = isMobile() ? slide.desktop : slide.mobile;   // fall back to the other breakpoint
+        const video = src.video || alt.video;
+        const image = src.image || alt.image;
+        const cssUrl = u => `url('${String(u).replace(/['"\\]/g, '')}')`;
+        // Sharp media (contain) over a blurred copy of the SAME asset.
+        if (slide.mediaType === 'video' && video) {
+          const v = esc(video), poster = image ? `poster="${esc(image)}"` : '';
+          return `<video class="hero-slide__bg" autoplay muted loop playsinline preload="metadata" src="${v}"></video>
+                  <video class="hero-slide__media" autoplay muted loop playsinline preload="metadata" ${poster} src="${v}"></video>`;
+        }
+        if (image) {
+          return `<div class="hero-slide__bg" style="background-image:${cssUrl(image)}"></div>
+                  <img class="hero-slide__media" src="${esc(image)}" alt="${esc(slide.label)}">`;
+        }
+        if (video) {  // only a video provided, even if type wasn't 'video'
+          const v = esc(video);
+          return `<video class="hero-slide__bg" autoplay muted loop playsinline preload="metadata" src="${v}"></video>
+                  <video class="hero-slide__media" autoplay muted loop playsinline preload="metadata" src="${v}"></video>`;
+        }
+        return ''; // 'none' → warm editorial frame (slide background shows)
+      }
+
+      function titleHTML(title) {
+        if (title.trim().toUpperCase() === 'NOOS') {
+          return [...'NOOS'].map((ch, i) =>
+            `<span class="${i % 2 ? 'ch--sage' : ''}">${ch}</span>`).join('');
+        }
+        return esc(title);
+      }
+
+      stage.innerHTML = slides.map((s, i) => `
+        <div class="hero-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
+          ${mediaHTML(s)}
+          <div class="hero-slide__scrim"></div>
+          <span class="hero-slide__ghost" aria-hidden="true">NOOS</span>
+          <div class="hero-copy">
+            <span class="hero-copy__label">${esc(s.label)}</span>
+            <h1 class="hero-copy__title">${titleHTML(s.title)}</h1>
+            ${s.subtitle ? `<p class="hero-copy__subtitle">${esc(s.subtitle)}</p>` : ''}
+            ${s.description ? `<p class="hero-copy__desc">${esc(s.description)}</p>` : ''}
+            <div class="hero-copy__cta">
+              ${s.primary ? `<a class="hero-btn hero-btn--solid" href="${esc(s.primary.href)}">${esc(s.primary.label)} <span class="arr">→</span></a>` : ''}
+              ${s.secondary ? `<a class="hero-btn hero-btn--ghost" href="${esc(s.secondary.href)}">${esc(s.secondary.label)}</a>` : ''}
+            </div>
+          </div>
+        </div>`).join('');
+
+      const slideEls = [...stage.querySelectorAll('.hero-slide')];
+
+      if (slides.length > 1) {
+        dotsEl.style.setProperty('--hero-dur', HERO_DURATION + 'ms');
+        dotsEl.innerHTML = slides.map((_, i) =>
+          `<button class="hero__dot ${i === 0 ? 'active' : ''}" data-go="${i}" aria-label="Slide ${i + 1}"></button>`).join('');
+      }
+      const dotEls = [...dotsEl.querySelectorAll('.hero__dot')];
+
+      let current = 0, timer = null;
+
+      function armProgress() {
+        dotEls.forEach(d => d.classList.remove('run'));
+        if (!reduce && dotEls[current]) {
+          void dotEls[current].offsetWidth; // restart animation
+          dotEls[current].classList.add('run');
+        }
+      }
+      function go(n) {
+        current = (n + slides.length) % slides.length;
+        slideEls.forEach((el, i) => el.classList.toggle('active', i === current));
+        dotEls.forEach((d, i) => d.classList.toggle('active', i === current));
+        armProgress();
+      }
+      function start() {
+        if (reduce || slides.length < 2) return;
+        clearInterval(timer);
+        timer = setInterval(() => go(current + 1), HERO_DURATION);
+      }
+
+      dotEls.forEach(d => d.addEventListener('click', () => { go(+d.dataset.go); start(); }));
+
+      // Re-resolve media on breakpoint cross (desktop ⇄ mobile sources)
+      let wasMobile = isMobile();
+      window.addEventListener('resize', () => {
+        if (isMobile() !== wasMobile) { wasMobile = isMobile(); location.reload(); }
+      });
+
+      armProgress();
+      start();
+    })();
+
+    // ── Layout shell ──
+    document.getElementById('nav-root').innerHTML = renderNav('home');
+    document.getElementById('strip-root').innerHTML = renderStrip();
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    let wishlistIds = [];
+
+    window.toggleWish = async function(productId, btn) {
+      if (!Auth.isLoggedIn()) {
+        document.getElementById('auth-modal').classList.add('active');
+        return;
+      }
+      try {
+        const res = await API.toggleWishlist(productId);
+        if (res.added) wishlistIds.push(Number(productId));
+        else wishlistIds = wishlistIds.filter(id => id !== Number(productId));
+        btn?.classList.toggle('active', res.added);
+        Toast.success(res.added ? 'Added to wishlist' : 'Removed from wishlist');
+      } catch (err) { Toast.error(err.message); }
+    };
+
+    function fillGrid(id, list, empty) {
+      const grid = document.getElementById(id);
+      if (!grid) return;
+      grid.innerHTML = (list && list.length)
+        ? list.slice(0, 8).map(p => renderProductCard(p, 'pages/product.html', wishlistIds)).join('')
+        : `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">${empty}</div>`;
+    }
+
+    async function loadProducts() {
+      try {
+        if (Auth.isLoggedIn()) {
+          try { wishlistIds = (await API.getWishlist()).map(w => Number(w.product_id)); } catch {}
+        }
+        // Home sections reflect EXACTLY the admin's CMS selections (authoritative —
+        // no badge fallback, so toggling in admin always changes the homepage).
+        const [newP, bestP] = await Promise.all([
+          API.getProducts({ homeNew: 1, sort: 'newest' }),
+          API.getProducts({ homeBestseller: 1, sort: 'bestseller' })
+        ]);
+        fillGrid('bestsellers-grid', bestP, 'No best sellers selected yet — pick some in Admin → Homepage.');
+        fillGrid('new-arrivals-grid', newP, 'No new arrivals selected yet — pick some in Admin → Homepage.');
+      } catch (err) { console.error(err); }
+    }
+
+    async function loadCollections() {
+      const grid = document.getElementById('collections-grid');
+      if (!grid) return;
+      try {
+        const cats = await API.getCategories();
+        // Admin-selected featured collections; fall back to image-backed top 6
+        let featured = cats.filter(c => c.featured_home == 1);
+        if (!featured.length) featured = [...cats].sort((a, b) => (b.image_url ? 1 : 0) - (a.image_url ? 1 : 0));
+        const top = featured.slice(0, 6);
+        if (!top.length) { grid.closest('.section').style.display = 'none'; return; }
+        grid.innerHTML = top.map((c) => {
+          const img = c.image_url
+            ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy">`
+            : `<span class="collection-tile__placeholder">${(c.name || 'NOOS')[0]}</span>`;
+          return `<a href="pages/shop.html?category=${c.slug}" class="collection-tile">
+              ${img}
+              <div class="collection-tile__body">
+                <div class="collection-tile__eyebrow">${c.subtitle ? c.subtitle : 'Collection'}</div>
+                <div class="collection-tile__name">${c.name}</div>
+                <span class="collection-tile__cta">Discover <i class="ti ti-arrow-right"></i></span>
+              </div>
+            </a>`;
+        }).join('');
+      } catch (e) {
+        grid.closest('.section').style.display = 'none';
+      }
+    }
+
+    async function handleNewsletter(e) {
+      e.preventDefault();
+      try {
+        const data = await API.subscribe(document.getElementById('nl-email').value);
+        Toast.success(`Subscribed! Use code ${data.code} for 10% off.`);
+        document.getElementById('nl-email').value = '';
+      } catch (err) { Toast.error(err.message); }
+    }
+
+    loadCollections();
+    loadProducts();
+  </script>
+</body>
+</html>

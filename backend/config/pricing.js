@@ -1,0 +1,4 @@
+const FREE_SHIPPING_THRESHOLD = 500; // EGP
+const SHIPPING_FEE = 60; // EGP flat rate
+
+module.exports = { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE };

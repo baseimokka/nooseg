@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/shop.css">
+</head>
+<body class="lux-page">
+  <script src="../js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a>
+    <i class="ti ti-chevron-right"></i>
+    <span class="current" id="bc-current">Shop</span>
+  </div>
+
+  <!-- Editorial header -->
+  <header class="shop-hero">
+    <span class="shop-hero__eyebrow" id="shop-eyebrow">NOOS · SS26</span>
+    <h1 class="shop-hero__title" id="shop-title">The Collection</h1>
+    <p class="shop-hero__sub" id="shop-sub">Considered menswear, restocked the moment it sells out. Browse the full range.</p>
+  </header>
+
+  <!-- Mobile filter bar (hidden on desktop) -->
+  <div class="mobile-filter-bar" id="mobile-filter-bar">
+    <button class="filter-btn" id="filter-btn">
+      <i class="ti ti-adjustments-horizontal"></i> Filters
+      <span class="filter-badge" id="filter-badge" style="display:none">0</span>
+    </button>
+    <select class="shop-sort" id="sort-select-mobile" onchange="document.getElementById('sort-select').value=this.value; applyFilters()">
+      <option value="">Newest</option>
+      <option value="price_asc">Price: Low to High</option>
+      <option value="price_desc">Price: High to Low</option>
+      <option value="bestseller">Best Sellers</option>
+      <option value="rating">Top Rated</option>
+    </select>
+  </div>
+
+  <!-- Filter Drawer (mobile) -->
+  <div class="filter-overlay" id="filter-overlay"></div>
+  <div class="filter-drawer" id="filter-drawer">
+    <div class="filter-drawer-header">
+      <span class="filter-drawer-title">Filters</span>
+      <button class="filter-drawer-close" id="filter-drawer-close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="filter-drawer-body">
+      <div class="filter-group">
+        <div class="filter-group__title">Category</div>
+        <div id="cat-list-drawer"></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group__title">Size</div>
+        <div class="size-chips" id="size-chips-drawer">
+          <div class="size-chip" data-size="XS" onclick="toggleSizeChipDrawer(this)">XS</div>
+          <div class="size-chip" data-size="S" onclick="toggleSizeChipDrawer(this)">S</div>
+          <div class="size-chip" data-size="M" onclick="toggleSizeChipDrawer(this)">M</div>
+          <div class="size-chip" data-size="L" onclick="toggleSizeChipDrawer(this)">L</div>
+          <div class="size-chip" data-size="XL" onclick="toggleSizeChipDrawer(this)">XL</div>
+          <div class="size-chip" data-size="XXL" onclick="toggleSizeChipDrawer(this)">XXL</div>
+          <div class="size-chip" data-size="28" onclick="toggleSizeChipDrawer(this)">28</div>
+          <div class="size-chip" data-size="30" onclick="toggleSizeChipDrawer(this)">30</div>
+          <div class="size-chip" data-size="32" onclick="toggleSizeChipDrawer(this)">32</div>
+          <div class="size-chip" data-size="34" onclick="toggleSizeChipDrawer(this)">34</div>
+          <div class="size-chip" data-size="36" onclick="toggleSizeChipDrawer(this)">36</div>
+          <div class="size-chip" data-size="38" onclick="toggleSizeChipDrawer(this)">38</div>
+          <div class="size-chip" data-size="39" onclick="toggleSizeChipDrawer(this)">39</div>
+          <div class="size-chip" data-size="40" onclick="toggleSizeChipDrawer(this)">40</div>
+          <div class="size-chip" data-size="41" onclick="toggleSizeChipDrawer(this)">41</div>
+          <div class="size-chip" data-size="42" onclick="toggleSizeChipDrawer(this)">42</div>
+          <div class="size-chip" data-size="43" onclick="toggleSizeChipDrawer(this)">43</div>
+          <div class="size-chip" data-size="44" onclick="toggleSizeChipDrawer(this)">44</div>
+          <div class="size-chip" data-size="45" onclick="toggleSizeChipDrawer(this)">45</div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group__title">Colour</div>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Black"><span>Black</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="White"><span>White</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Forest Green"><span>Forest Green</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Navy"><span>Navy</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Camel"><span>Camel</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Olive"><span>Olive</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour-d" value="Slate Grey"><span>Slate Grey</span></label>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group__title">Price (EGP)</div>
+        <input type="range" id="price-range-drawer" min="0" max="2000" value="2000" step="50"
+          oninput="document.getElementById('price-val-drawer').textContent=this.value">
+        <div class="range-value">Max: EGP <span id="price-val-drawer">2000</span></div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-group__title">Badge</div>
+        <label class="filter-check"><input type="checkbox" name="badge-d" value="new"><span>New</span></label>
+        <label class="filter-check"><input type="checkbox" name="badge-d" value="sale"><span>Sale</span></label>
+        <label class="filter-check"><input type="checkbox" name="badge-d" value="bestseller"><span>Bestseller</span></label>
+      </div>
+    </div>
+    <div class="filter-drawer-footer">
+      <button class="btn-outline" onclick="clearDrawerFilters()">Clear All</button>
+      <button class="btn-green" onclick="applyDrawerFilters()">Apply Filters</button>
+    </div>
+  </div>
+
+  <div class="shop-layout">
+    <!-- Sidebar -->
+    <aside class="shop-sidebar">
+      <div class="sidebar-header">Filters</div>
+
+      <div class="filter-group">
+        <div class="filter-group__title">Category</div>
+        <div id="cat-list-sidebar"></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group__title">Size</div>
+        <div class="size-chips">
+          <div class="size-chip" data-size="XS" onclick="toggleSizeChip(this)">XS</div>
+          <div class="size-chip" data-size="S" onclick="toggleSizeChip(this)">S</div>
+          <div class="size-chip" data-size="M" onclick="toggleSizeChip(this)">M</div>
+          <div class="size-chip" data-size="L" onclick="toggleSizeChip(this)">L</div>
+          <div class="size-chip" data-size="XL" onclick="toggleSizeChip(this)">XL</div>
+          <div class="size-chip" data-size="XXL" onclick="toggleSizeChip(this)">XXL</div>
+          <div class="size-chip" data-size="28" onclick="toggleSizeChip(this)">28</div>
+          <div class="size-chip" data-size="30" onclick="toggleSizeChip(this)">30</div>
+          <div class="size-chip" data-size="32" onclick="toggleSizeChip(this)">32</div>
+          <div class="size-chip" data-size="34" onclick="toggleSizeChip(this)">34</div>
+          <div class="size-chip" data-size="36" onclick="toggleSizeChip(this)">36</div>
+          <div class="size-chip" data-size="38" onclick="toggleSizeChip(this)">38</div>
+          <div class="size-chip" data-size="39" onclick="toggleSizeChip(this)">39</div>
+          <div class="size-chip" data-size="40" onclick="toggleSizeChip(this)">40</div>
+          <div class="size-chip" data-size="41" onclick="toggleSizeChip(this)">41</div>
+          <div class="size-chip" data-size="42" onclick="toggleSizeChip(this)">42</div>
+          <div class="size-chip" data-size="43" onclick="toggleSizeChip(this)">43</div>
+          <div class="size-chip" data-size="44" onclick="toggleSizeChip(this)">44</div>
+          <div class="size-chip" data-size="45" onclick="toggleSizeChip(this)">45</div>
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group__title">Colour</div>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Black"><span>Black</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="White"><span>White</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Forest Green"><span>Forest Green</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Navy"><span>Navy</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Camel"><span>Camel</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Olive"><span>Olive</span></label>
+        <label class="filter-check"><input type="checkbox" name="colour" value="Slate Grey"><span>Slate Grey</span></label>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group__title">Price (EGP)</div>
+        <input type="range" id="price-range" min="0" max="2000" value="2000" step="50" oninput="document.getElementById('price-val').textContent=this.value;applyFilters()">
+        <div class="range-value">Max: EGP <span id="price-val">2000</span></div>
+      </div>
+
+      <div class="filter-group">
+        <div class="filter-group__title">Badge</div>
+        <label class="filter-check"><input type="checkbox" name="badge" value="new"><span>New</span></label>
+        <label class="filter-check"><input type="checkbox" name="badge" value="sale"><span>Sale</span></label>
+        <label class="filter-check"><input type="checkbox" name="badge" value="bestseller"><span>Bestseller</span></label>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="shop-main">
+      <div class="shop-topbar">
+        <span class="shop-count" id="product-count">Loading...</span>
+        <select class="shop-sort" id="sort-select" onchange="applyFilters()">
+          <option value="">Newest</option>
+          <option value="price_asc">Price: Low to High</option>
+          <option value="price_desc">Price: High to Low</option>
+          <option value="bestseller">Best Sellers</option>
+          <option value="rating">Top Rated</option>
+        </select>
+      </div>
+      <div class="shop-grid" id="shop-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Loading products...</div>
+      </div>
+    </main>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    document.getElementById('nav-root').innerHTML = renderNav('shop');
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    let wishlistIds = [];
+    let activeSize = '';
+    let activeSizeDrawer = '';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const initCat    = urlParams.get('category') || '';
+    const initBadge  = urlParams.get('badge')    || '';
+    const initSearch = urlParams.get('search')   || '';
+
+    if (initBadge) {
+      const b  = document.querySelector(`input[name="badge"][value="${initBadge}"]`);
+      const bd = document.querySelector(`input[name="badge-d"][value="${initBadge}"]`);
+      if (b)  b.checked  = true;
+      if (bd) bd.checked = true;
+    }
+
+    // ── Load categories from API and render as single-select radios ──
+    async function loadCategories() {
+      try {
+        const cats = await API.getCategories();
+        const all  = [{ name: 'All', slug: '' }, ...cats];
+
+        function makeRadios(name) {
+          return all.map(c => `
+            <label class="filter-check">
+              <input type="radio" name="${name}" value="${c.slug}" ${c.slug === initCat ? 'checked' : (!initCat && c.slug === '' ? 'checked' : '')}>
+              <span>${c.name}</span>
+            </label>`).join('');
+        }
+
+        document.getElementById('cat-list-sidebar').innerHTML = makeRadios('cat');
+        document.getElementById('cat-list-drawer').innerHTML  = makeRadios('cat-d');
+
+        // Auto-filter when sidebar radio changes
+        document.querySelectorAll('input[name="cat"]').forEach(r => r.addEventListener('change', applyFilters));
+        return cats;
+      } catch (e) {
+        console.error('Failed to load categories:', e);
+        return [];
+      }
+    }
+
+    window.toggleWish = async function(productId, btn) {
+      if (!Auth.isLoggedIn()) { document.getElementById('auth-modal').classList.add('active'); return; }
+      try {
+        const res = await API.toggleWishlist(productId);
+        if (res.added) wishlistIds.push(Number(productId));
+        else wishlistIds = wishlistIds.filter(id => id !== Number(productId));
+        btn?.classList.toggle('active', res.added);
+        Toast.success(res.added ? 'Added to wishlist' : 'Removed from wishlist');
+      } catch (err) { Toast.error(err.message); }
+    };
+
+    function toggleSizeChip(el) {
+      document.querySelectorAll('.shop-sidebar .size-chip').forEach(c => c.classList.remove('active'));
+      activeSize = activeSize === el.dataset.size ? '' : el.dataset.size;
+      if (activeSize) el.classList.add('active');
+      applyFilters();
+    }
+
+    function toggleSizeChipDrawer(el) {
+      document.querySelectorAll('#size-chips-drawer .size-chip').forEach(c => c.classList.remove('active'));
+      activeSizeDrawer = activeSizeDrawer === el.dataset.size ? '' : el.dataset.size;
+      if (activeSizeDrawer) el.classList.add('active');
+    }
+
+    function getFilters() {
+      const catEl    = document.querySelector('input[name="cat"]:checked');
+      const colours  = [...document.querySelectorAll('input[name="colour"]:checked')].map(c => c.value);
+      const badges   = [...document.querySelectorAll('input[name="badge"]:checked')].map(c => c.value);
+      const maxPrice = document.getElementById('price-range').value;
+      const sort     = document.getElementById('sort-select').value;
+      return { category: catEl ? catEl.value : '', colour: colours[0]||'', badge: badges[0]||'', maxPrice, sort, size: activeSize };
+    }
+
+    async function applyFilters() {
+      const grid = document.getElementById('shop-grid');
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Loading...</div>';
+      try {
+        const f = getFilters();
+        const params = {};
+        if (f.category) params.category = f.category;
+        if (f.colour)   params.colour   = f.colour;
+        if (f.badge)    params.badge    = f.badge;
+        if (f.maxPrice < 2000) params.maxPrice = f.maxPrice;
+        if (f.sort)   params.sort   = f.sort;
+        if (f.size)   params.size   = f.size;
+        if (initSearch) params.search = initSearch;
+        const products = await API.getProducts(params);
+        document.getElementById('product-count').textContent = `${products.length} products`;
+        grid.innerHTML = products.length
+          ? products.map(p => renderProductCard(p, 'product.html', wishlistIds)).join('')
+          : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No products found.</div>';
+      } catch {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);">Failed to load products.</div>';
+      }
+    }
+
+    // Static filter listeners (colour, badge — not category, that's handled after API load)
+    document.querySelectorAll('input[name="colour"], input[name="badge"]').forEach(cb => {
+      cb.addEventListener('change', applyFilters);
+    });
+
+    // Mobile filter drawer
+    const filterBtn         = document.getElementById('filter-btn');
+    const filterDrawer      = document.getElementById('filter-drawer');
+    const filterOverlay     = document.getElementById('filter-overlay');
+    const filterDrawerClose = document.getElementById('filter-drawer-close');
+
+    function openFilterDrawer()  { filterDrawer.classList.add('open');    filterOverlay.classList.add('open');    document.body.style.overflow = 'hidden'; }
+    function closeFilterDrawer() { filterDrawer.classList.remove('open'); filterOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+    filterBtn?.addEventListener('click', openFilterDrawer);
+    filterOverlay?.addEventListener('click', closeFilterDrawer);
+    filterDrawerClose?.addEventListener('click', closeFilterDrawer);
+
+    function _countActiveFilters() {
+      let n = 0;
+      const dCat = document.querySelector('input[name="cat-d"]:checked')?.value;
+      if (dCat) n++;
+      if ([...document.querySelectorAll('input[name="colour-d"]:checked')].length) n++;
+      if ([...document.querySelectorAll('input[name="badge-d"]:checked')].length) n++;
+      if (activeSizeDrawer) n++;
+      if (Number(document.getElementById('price-range-drawer').value) < 2000) n++;
+      return n;
+    }
+
+    window.applyDrawerFilters = function() {
+      // Sync drawer → sidebar
+      const dCat = document.querySelector('input[name="cat-d"]:checked')?.value || '';
+      document.querySelectorAll('input[name="cat"]').forEach(r => { r.checked = r.value === dCat; });
+
+      const dColours = [...document.querySelectorAll('input[name="colour-d"]:checked')].map(c => c.value);
+      document.querySelectorAll('input[name="colour"]').forEach(cb => { cb.checked = dColours.includes(cb.value); });
+
+      const dBadges = [...document.querySelectorAll('input[name="badge-d"]:checked')].map(c => c.value);
+      document.querySelectorAll('input[name="badge"]').forEach(cb => { cb.checked = dBadges.includes(cb.value); });
+
+      activeSize = activeSizeDrawer;
+      const drawerPrice = document.getElementById('price-range-drawer').value;
+      document.getElementById('price-range').value  = drawerPrice;
+      document.getElementById('price-val').textContent = drawerPrice;
+
+      const cnt   = _countActiveFilters();
+      const badge = document.getElementById('filter-badge');
+      badge.textContent  = cnt;
+      badge.style.display = cnt > 0 ? 'flex' : 'none';
+      closeFilterDrawer();
+      applyFilters();
+    };
+
+    window.clearDrawerFilters = function() {
+      // Reset category radios to "All"
+      const firstD = document.querySelector('input[name="cat-d"]');
+      const first  = document.querySelector('input[name="cat"]');
+      if (firstD) firstD.checked = true;
+      if (first)  first.checked  = true;
+
+      document.querySelectorAll('input[name="colour-d"], input[name="badge-d"]').forEach(cb => { cb.checked = false; });
+      document.querySelectorAll('input[name="colour"],   input[name="badge"]').forEach(cb => { cb.checked = false; });
+      document.querySelectorAll('#size-chips-drawer .size-chip, .shop-sidebar .size-chip').forEach(c => c.classList.remove('active'));
+      activeSizeDrawer = '';
+      activeSize = '';
+      document.getElementById('price-range-drawer').value  = 2000;
+      document.getElementById('price-val-drawer').textContent = '2000';
+      document.getElementById('price-range').value  = 2000;
+      document.getElementById('price-val').textContent = '2000';
+      document.getElementById('filter-badge').style.display = 'none';
+      closeFilterDrawer();
+      applyFilters();
+    };
+
+    function setShopHeader(cats) {
+      const eyebrow = document.getElementById('shop-eyebrow');
+      const title   = document.getElementById('shop-title');
+      const sub     = document.getElementById('shop-sub');
+      const bc      = document.getElementById('bc-current');
+      if (initSearch) {
+        eyebrow.textContent = 'Search';
+        title.textContent   = `“${initSearch}”`;
+        sub.textContent     = 'Showing products matching your search.';
+        bc.textContent      = 'Search';
+      } else if (initCat) {
+        const c = (cats || []).find(x => x.slug === initCat);
+        eyebrow.textContent = 'Collection';
+        title.textContent   = c ? c.name : 'The Collection';
+        sub.textContent     = 'Considered menswear, restocked the moment it sells out.';
+        bc.textContent      = c ? c.name : 'Shop';
+      } else if (initBadge) {
+        const map = { new: 'New Arrivals', bestseller: 'Best Sellers', sale: 'On Sale' };
+        eyebrow.textContent = 'NOOS · SS26';
+        title.textContent   = map[initBadge] || 'The Collection';
+        bc.textContent      = map[initBadge] || 'Shop';
+      }
+    }
+
+    async function init() {
+      if (Auth.isLoggedIn()) {
+        try { const wl = await API.getWishlist(); wishlistIds = wl.map(w => Number(w.product_id)); } catch {}
+      }
+      // Load dynamic categories first, then trigger initial product fetch
+      const cats = await loadCategories();
+      setShopHeader(cats);
+      applyFilters();
+    }
+    init();
+  </script>
+</body>
+</html>

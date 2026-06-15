@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Collections — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="../css/home.css">
+  <style>
+    .collections-hero {
+      background: var(--warmdark);
+      padding: clamp(64px,10vw,150px) clamp(24px,6vw,48px) clamp(48px,7vw,110px);
+      position: relative; overflow: hidden;
+    }
+    .collections-hero__ghost { font-family: var(--f-lux); font-size: clamp(150px,28vw,440px); color: var(--ivory-10); position: absolute; right: -2vw; bottom: -6vh; line-height: .7; pointer-events: none; user-select: none; }
+    .collections-hero > *:not(.collections-hero__ghost) { position: relative; z-index: 1; }
+    .collections-hero__eyebrow { font-family: var(--fb); font-size: 11px; font-weight: 500; letter-spacing: .42em; text-transform: uppercase; color: var(--sage); margin-bottom: 18px; display: block; }
+    .collections-hero__title { font-family: var(--f-lux); font-weight: 400; font-size: clamp(56px,11vw,170px); line-height: .86; letter-spacing: .03em; color: var(--ivory); }
+    .collections-hero__sub { font-family: var(--fb); font-size: 15px; font-weight: 300; color: var(--ivory-60); max-width: 50ch; margin-top: 22px; line-height: 1.7; }
+  </style>
+</head>
+<body class="home-page">
+  <script src="../js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <header class="collections-hero">
+    <span class="collections-hero__ghost" aria-hidden="true">NOOS</span>
+    <span class="collections-hero__eyebrow">NOOS · SS26</span>
+    <h1 class="collections-hero__title">Collections</h1>
+    <p class="collections-hero__sub">categories, each restocked the moment it sells out. Find your everyday.</p>
+  </header>
+
+  <main class="home-lux">
+    <section class="section">
+      <div class="collections-grid" id="collections-grid">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:12px;">Loading…</div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-root"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    document.getElementById('nav-root').innerHTML = renderNav('collections');
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    async function loadCollections() {
+      const grid = document.getElementById('collections-grid');
+      try {
+        const all = await API.getCategories();
+        const cats = all.filter(c => c.show_in_collections != 0); // admin-controlled visibility
+        if (!cats.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No collections yet.</div>'; return; }
+        grid.innerHTML = cats.map(c => {
+          const img = c.image_url
+            ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy">`
+            : `<span class="collection-tile__placeholder">${(c.name || 'NOOS')[0]}</span>`;
+          return `<a href="shop.html?category=${c.slug}" class="collection-tile">
+              ${img}
+              <div class="collection-tile__body">
+                <div class="collection-tile__eyebrow">${c.subtitle ? c.subtitle : 'Collection'}</div>
+                <div class="collection-tile__name">${c.name}</div>
+                <span class="collection-tile__cta">Discover <i class="ti ti-arrow-right"></i></span>
+              </div>
+            </a>`;
+        }).join('');
+      } catch (e) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);">Failed to load collections.</div>';
+      }
+    }
+    loadCollections();
+  </script>
+</body>
+</html>

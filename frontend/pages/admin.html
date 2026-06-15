@@ -1,0 +1,2438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <style>
+    /* ── Layout ───────────────────────────────────────────── */
+    body { background: var(--paper); overflow: hidden; }
+    .admin-wrap { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+    .adm-sidebar {
+      background: var(--noir);
+      border-right: 1px solid var(--hair);
+      display: flex; flex-direction: column;
+      width: 168px; min-width: 168px;
+      height: 100vh; overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .adm-logo {
+      padding: 20px 16px 16px;
+      border-bottom: 1px solid var(--hair);
+      flex-shrink: 0;
+    }
+    .adm-logo__main { font-family: var(--f-lux); font-size: 24px; letter-spacing: 0.14em; text-indent: .14em; color: var(--ivory); }
+    .adm-logo__sub  { font-family: var(--fb); font-size: 7px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--sage); margin-top: 3px; }
+
+    .adm-group { padding: 11px 16px 5px; }
+    .adm-group__label {
+      font-size: 8px; letter-spacing: 0.22em; text-transform: uppercase;
+      color: var(--ivory-40); font-family: var(--fb);
+      border-bottom: 1px solid var(--hair);
+      padding-bottom: 6px; margin-bottom: 2px;
+    }
+    .adm-nav {
+      display: flex; align-items: center; gap: 7px;
+      padding: 8px 14px;
+      font-size: 11px; font-family: var(--fb);
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      border-left: 2px solid transparent;
+      text-decoration: none;
+      transition: background 0.15s, color 0.15s;
+    }
+    .adm-nav i { font-size: 15px; flex-shrink: 0; }
+    .adm-nav:hover { background: rgba(255,255,255,0.05); color: var(--ivory-60); }
+    .adm-nav.active { background: rgba(255,255,255,0.07); color: var(--ivory); border-left-color: var(--sage); }
+
+    .adm-sidebar-bottom { margin-top: auto; padding: 8px 0; border-top: 1px solid var(--hair); }
+
+    /* ── Main area ────────────────────────────────────────── */
+    .adm-main { flex: 1; height: 100vh; overflow-y: auto; display: flex; flex-direction: column; min-width: 0; }
+
+    /* ── Panels ───────────────────────────────────────────── */
+    .adm-panel { display: none; flex-direction: column; flex: 1; }
+    .adm-panel.active { display: flex; }
+
+    .adm-topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--hair-d);
+      padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0; gap: 10px; flex-wrap: wrap;
+    }
+    .adm-panel-title { font-family: var(--f-lux); font-weight: 400; font-size: 30px; letter-spacing: 0.02em; color: var(--ink); }
+    .adm-date { font-size: 11px; color: var(--ink-50); letter-spacing: .06em; }
+
+    .adm-body { padding: 16px 18px; overflow-y: auto; flex: 1; }
+
+    /* ── Stat cards ───────────────────────────────────────── */
+    .stat-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--hair-d);
+      border-radius: 4px; padding: 16px 18px;
+    }
+    .stat-card__label { font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-50); margin-bottom: 6px; }
+    .stat-card__val   { font-family: var(--f-lux); font-weight: 400; font-size: 32px; letter-spacing: 0.02em; color: var(--ink); }
+    .stat-card__sub   { font-size: 9px; margin-top: 3px; }
+
+    /* ── Cards ────────────────────────────────────────────── */
+    .adm-card { background: var(--card); border: 1px solid var(--hair-d); border-radius: 4px; margin-bottom: 14px; overflow: hidden; }
+    .adm-card__hd {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; border-bottom: 1px solid var(--hair-d);
+    }
+    .adm-card__title { font-size: 12px; font-weight: 500; color: var(--ink); letter-spacing: .04em; }
+
+    /* ── Tables ───────────────────────────────────────────── */
+    .adm-tbl { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+    .adm-tbl th {
+      background: var(--paper2); font-size: 9px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-50);
+      padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--hair-d);
+      white-space: nowrap;
+    }
+    .adm-tbl td {
+      padding: 11px 12px; border-bottom: 1px solid var(--hair-d);
+      color: var(--ink); overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; vertical-align: middle;
+    }
+    .adm-tbl tr:last-child td { border-bottom: none; }
+    .adm-tbl tbody tr:hover td { background: var(--paper2); }
+
+    /* ── Table buttons ────────────────────────────────────── */
+    .tb { padding: 3px 8px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; border: 0.5px solid; background: transparent; cursor: pointer; font-family: var(--fb); margin-right: 3px; border-radius: 0; }
+    .tb-grn  { border-color: var(--grn);  color: var(--grn); }
+    .tb-red  { border-color: var(--red);  color: var(--red); }
+    .tb-gold { border-color: var(--gold); color: var(--gold); }
+    .tb-ink  { border-color: var(--ink);  color: var(--ink); }
+
+    /* ── Toggle switches ──────────────────────────────────── */
+    .tog {
+      display: inline-block; width: 28px; height: 15px;
+      border-radius: 8px; background: var(--border2);
+      position: relative; cursor: pointer; flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .tog.on { background: var(--grn); }
+    .tog::after {
+      content: ''; position: absolute; width: 11px; height: 11px;
+      border-radius: 50%; background: #fff; top: 2px; left: 2px;
+      transition: left 0.2s;
+    }
+    .tog.on::after { left: 15px; }
+
+    /* ── Status pills ─────────────────────────────────────── */
+    .adm-pill {
+      display: inline-block; padding: 2px 7px; font-size: 9px;
+      font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      border-radius: 2px;
+    }
+    .ap-pending    { background: #F5F0DC; color: #7A6020; }
+    .ap-processing { background: var(--grn-pale); color: var(--grn2); }
+    .ap-shipped    { background: var(--surf); color: var(--slate); }
+    .ap-delivered  { background: #E0EDE0; color: #2A562A; }
+    .ap-cancelled  { background: var(--red-lt); color: var(--red); }
+    .ap-paid       { background: #E0EDE0; color: #2A562A; }
+    .ap-refunded   { background: var(--red-lt); color: var(--red); }
+    .ap-active     { background: var(--grn-pale); color: var(--grn2); }
+    .ap-inactive   { background: var(--surf); color: var(--muted); }
+    .ap-pending_verification { background: #F5F0DC; color: #7A6020; }
+    .ap-verified   { background: #E0EDE0; color: #2A562A; }
+    .ap-rejected   { background: var(--red-lt); color: var(--red); }
+
+    /* ── Bottom grid (dashboard) ──────────────────────────── */
+    .dash-bot { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    /* ── Filter bar ───────────────────────────────────────── */
+    .filter-bar {
+      display: flex; gap: 8px; align-items: center;
+      padding: 10px 14px; border-bottom: 0.5px solid var(--border); flex-wrap: wrap;
+    }
+    .filter-bar .form-input,
+    .filter-bar .form-select { padding: 7px 10px; font-size: 11px; }
+
+    /* ── Order status tabs ────────────────────────────────── */
+    .ord-tabs { display: flex; overflow-x: auto; border-bottom: 0.5px solid var(--border); }
+    .ord-tab {
+      padding: 9px 13px; font-size: 10px; font-weight: 500;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); background: none; border: none;
+      border-bottom: 2px solid transparent; cursor: pointer;
+      font-family: var(--fb); white-space: nowrap; flex-shrink: 0;
+    }
+    .ord-tab:hover { color: var(--ink3); }
+    .ord-tab.active { color: var(--grn2); border-bottom-color: var(--grn); }
+
+    /* ── Modal system ─────────────────────────────────────── */
+    .adm-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.45); z-index: 9000;
+      align-items: center; justify-content: center; padding: 16px;
+    }
+    .adm-modal.open { display: flex; }
+    .adm-modal__box {
+      background: var(--card); border: 1px solid var(--hair-d);
+      border-radius: 4px; padding: 24px; width: 540px;
+      max-width: 100%; max-height: 90vh; overflow-y: auto; position: relative;
+    }
+    .adm-modal__hd {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .adm-modal__title { font-family: var(--ff); font-size: 18px; letter-spacing: 0.04em; }
+    .adm-modal__close {
+      width: 26px; height: 26px; display: flex; align-items: center;
+      justify-content: center; background: var(--surf); border: none;
+      cursor: pointer; color: var(--muted); font-size: 14px; flex-shrink: 0;
+    }
+    .adm-modal__ft {
+      display: flex; gap: 8px; justify-content: flex-end;
+      margin-top: 16px; padding-top: 14px; border-top: 0.5px solid var(--border);
+    }
+    .m-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .m-grp { margin-bottom: 12px; }
+    .m-grp:last-child { margin-bottom: 0; }
+
+    /* ── Order detail modal ───────────────────────────────── */
+    .om-sec { font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin: 14px 0 6px; padding-bottom: 4px; border-bottom: 0.5px solid var(--border); }
+    .om-item { display: flex; gap: 8px; padding: 6px 0; border-bottom: 0.5px solid var(--border); font-size: 11px; color: var(--ink3); align-items: center; }
+    .om-item:last-child { border-bottom: none; }
+    .om-thumb { width: 36px; height: 46px; background: var(--surf); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+    .om-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Low stock row colours ────────────────────────────── */
+    .ls-critical td { background: #FFF8F8 !important; }
+    .ls-warning  td { background: #FFFAF5 !important; }
+
+    /* ── Avatar circles ───────────────────────────────────── */
+    .av-circle {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--ff); font-size: 11px; color: #fff; flex-shrink: 0;
+    }
+
+    /* ── Colour swatch inline ─────────────────────────────── */
+    .col-dot { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 0.5px solid var(--border); vertical-align: middle; margin-right: 5px; }
+
+    /* ── Empty state ──────────────────────────────────────── */
+    .empty-st { padding: 40px 20px; text-align: center; color: var(--muted); }
+    .empty-st i { font-size: 32px; display: block; margin-bottom: 8px; color: var(--border); }
+    .empty-st p { font-size: 12px; margin-bottom: 12px; }
+
+    /* ── Loading ──────────────────────────────────────────── */
+    .ld-cell { padding: 20px; text-align: center; color: var(--muted); font-size: 11px; }
+
+    /* ── Home product curation (add-by-search) ────────────── */
+    .hp-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .hp-add { position: relative; margin-bottom: 12px; }
+    .hp-suggest {
+      display: none; position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+      background: var(--white); border: 1px solid var(--border2); border-top: none;
+      max-height: 260px; overflow-y: auto; box-shadow: 0 12px 28px rgba(28,28,26,0.14);
+    }
+    .hp-suggest.open { display: block; }
+    .hp-sug-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; cursor: pointer; border-bottom: 0.5px solid var(--border); }
+    .hp-sug-item:last-child { border-bottom: none; }
+    .hp-sug-item:hover { background: var(--surf); }
+    .hp-sug-item__thumb { width: 26px; height: 32px; background: var(--surf); overflow: hidden; flex-shrink: 0; }
+    .hp-sug-item__thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .hp-sug-item__name { font-size: 12px; color: var(--ink3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hp-sug-item__cat { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+    .hp-sug-empty { padding: 12px; text-align: center; font-size: 11px; color: var(--muted); }
+    .hp-list { display: flex; flex-direction: column; gap: 7px; }
+    .hp-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0.5px solid var(--border); background: var(--white); }
+    .hp-row__thumb { width: 30px; height: 38px; background: var(--surf); overflow: hidden; flex-shrink: 0; }
+    .hp-row__thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .hp-row__name { font-size: 12px; font-weight: 500; color: var(--ink3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .hp-row__order { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+    .hp-row__rm { width: 24px; height: 24px; flex-shrink: 0; background: transparent; border: 0.5px solid var(--red); color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .hp-row__rm:hover { background: var(--red); color: #fff; }
+    .hp-empty { padding: 20px; text-align: center; font-size: 11px; color: var(--muted); border: 1px dashed var(--border2); }
+    @media (max-width: 900px) { .hp-sections { grid-template-columns: 1fr; } }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 1100px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 900px)  { .dash-bot { grid-template-columns: 1fr; } }
+    @media (max-width: 768px)  {
+      .adm-sidebar { width: 44px; min-width: 44px; }
+      /* Collapsed rail: centre the wordmark and drop the letter-spacing/indent
+         so "NOOS" fits the 44px sidebar instead of clipping to "NOO". */
+      .adm-logo { padding: 16px 4px; text-align: center; }
+      .adm-logo__main { font-size: 15px; letter-spacing: 0; text-indent: 0; }
+      .adm-logo__sub, .adm-group__label, .adm-nav span { display: none; }
+      .adm-nav { justify-content: center; padding: 10px; }
+      .m-row { grid-template-columns: 1fr; }
+      .adm-body { padding: 10px; }
+      /* Let wide data tables scroll horizontally inside their card rather than
+         clipping the right-hand columns (Status / Action buttons). */
+      .adm-card { overflow-x: auto; }
+      .adm-tbl { table-layout: auto; min-width: 540px; }
+    }
+    @media (max-width: 480px) {
+      .stat-row { grid-template-columns: 1fr; }
+      .adm-card-header { flex-wrap: wrap; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+  <script src="../js/preloader.js"></script>
+<div class="admin-wrap">
+
+  <!-- ── Sidebar ────────────────────────────────────────────── -->
+  <aside class="adm-sidebar">
+    <div class="adm-logo">
+      <div class="adm-logo__main">NOOS</div>
+      <div class="adm-logo__sub">Admin Panel</div>
+    </div>
+
+    <div class="adm-group">
+      <div class="adm-group__label">Overview</div>
+      <a class="adm-nav active" href="#" data-panel="dashboard" onclick="goPanel('dashboard',this);return false;">
+        <i class="ti ti-dashboard"></i><span>Dashboard</span>
+      </a>
+    </div>
+    <div class="adm-group">
+      <div class="adm-group__label">Content</div>
+      <a class="adm-nav" href="#" data-panel="hero" onclick="goPanel('hero',this);return false;">
+        <i class="ti ti-photo"></i><span>Hero Slides</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="homepage" onclick="goPanel('homepage',this);return false;">
+        <i class="ti ti-layout-dashboard"></i><span>Homepage</span>
+      </a>
+    </div>
+    <div class="adm-group">
+      <div class="adm-group__label">Catalogue</div>
+      <a class="adm-nav" href="#" data-panel="products" onclick="goPanel('products',this);return false;">
+        <i class="ti ti-shirt"></i><span>Products</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="categories" onclick="goPanel('categories',this);return false;">
+        <i class="ti ti-category"></i><span>Categories</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="variants" onclick="goPanel('variants',this);return false;">
+        <i class="ti ti-stack-2"></i><span>Variants</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="inventory" onclick="goPanel('inventory',this);return false;">
+        <i class="ti ti-box"></i><span>Inventory</span>
+      </a>
+    </div>
+    <div class="adm-group">
+      <div class="adm-group__label">Commerce</div>
+      <a class="adm-nav" href="#" data-panel="orders" onclick="goPanel('orders',this);return false;">
+        <i class="ti ti-receipt"></i><span>Orders</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="customers" onclick="goPanel('customers',this);return false;">
+        <i class="ti ti-users"></i><span>Customers</span>
+      </a>
+      <a class="adm-nav" href="#" data-panel="coupons" onclick="goPanel('coupons',this);return false;">
+        <i class="ti ti-tag"></i><span>Coupons</span>
+      </a>
+    </div>
+    <div class="adm-group">
+      <div class="adm-group__label">System</div>
+      <a class="adm-nav" href="#" data-panel="settings" onclick="goPanel('settings',this);return false;">
+        <i class="ti ti-settings"></i><span>Settings</span>
+      </a>
+    </div>
+
+    <div class="adm-sidebar-bottom">
+      <a class="adm-nav" href="../index.html"><i class="ti ti-home"></i><span>Store</span></a>
+      <div class="adm-nav" onclick="doLogout()"><i class="ti ti-logout"></i><span>Logout</span></div>
+    </div>
+  </aside>
+
+  <!-- ── Main ───────────────────────────────────────────────── -->
+  <main class="adm-main">
+
+    <!-- ┌ Dashboard ──────────────────────────────────────────┐ -->
+    <div class="adm-panel active" id="panel-dashboard">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Dashboard</h1>
+        <span class="adm-date" id="dash-date"></span>
+      </div>
+      <div class="adm-body">
+        <div class="stat-row">
+          <div class="stat-card" style="border-left:3px solid var(--grn)">
+            <div class="stat-card__label">Products</div>
+            <div class="stat-card__val" id="s-products">—</div>
+            <div class="stat-card__sub" style="color:var(--grn)">Active listings</div>
+          </div>
+          <div class="stat-card" style="border-left:3px solid var(--gold)">
+            <div class="stat-card__label">Orders</div>
+            <div class="stat-card__val" id="s-orders">—</div>
+            <div class="stat-card__sub" style="color:var(--gold)">Total orders</div>
+          </div>
+          <div class="stat-card" style="border-left:3px solid var(--ink)">
+            <div class="stat-card__label">Revenue</div>
+            <div class="stat-card__val" id="s-revenue">—</div>
+            <div class="stat-card__sub" style="color:var(--slate)">EGP earned</div>
+          </div>
+          <div class="stat-card" style="border-left:3px solid var(--slate)">
+            <div class="stat-card__label">Customers</div>
+            <div class="stat-card__val" id="s-customers">—</div>
+            <div class="stat-card__sub" style="color:var(--slate)">Registered</div>
+          </div>
+        </div>
+
+        <div class="adm-card">
+          <div class="adm-card__hd">
+            <span class="adm-card__title">Recent Orders</span>
+            <button class="tb tb-grn" onclick="goPanel('orders',document.querySelector('[data-panel=orders]'))">View All</button>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:32%">Order #</th>
+              <th style="width:23%">Customer</th>
+              <th style="width:14%">Total</th>
+              <th style="width:16%">Status</th>
+              <th style="width:15%">Action</th>
+            </tr></thead>
+            <tbody id="dash-orders-tb"><tr><td colspan="5" class="ld-cell">Loading...</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="dash-bot">
+          <div class="adm-card" style="border-left:3px solid var(--red)">
+            <div class="adm-card__hd">
+              <span class="adm-card__title" style="color:var(--red)"><i class="ti ti-alert-triangle" style="font-size:13px;margin-right:4px;"></i>Low Stock Alert</span>
+            </div>
+            <div id="dash-lowstock" style="padding:10px 14px;font-size:11px;"></div>
+          </div>
+          <div class="adm-card">
+            <div class="adm-card__hd"><span class="adm-card__title">Quick Actions</span></div>
+            <div style="padding:14px;display:flex;flex-direction:column;gap:8px;">
+              <button class="btn-green" style="justify-content:flex-start;" onclick="goPanel('products',document.querySelector('[data-panel=products]'));setTimeout(openProductModal,50)">
+                <i class="ti ti-plus"></i> Add Product
+              </button>
+              <button class="btn-primary" style="justify-content:flex-start;" onclick="goPanel('categories',document.querySelector('[data-panel=categories]'));setTimeout(openCategoryModal,50)">
+                <i class="ti ti-plus"></i> Add Category
+              </button>
+              <button style="display:flex;align-items:center;gap:8px;padding:13px 16px;background:var(--gold-lt);color:var(--gold);border:none;font-size:11px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;font-family:var(--fb);cursor:pointer;border-radius:0;" onclick="goPanel('coupons',document.querySelector('[data-panel=coupons]'));setTimeout(openCouponModal,50)">
+                <i class="ti ti-plus"></i> Create Coupon
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Hero Slides ─────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-hero">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Hero Slides</h1>
+        <button class="btn-green" onclick="openHeroModal()"><i class="ti ti-plus"></i> Add Slide</button>
+      </div>
+      <div class="adm-body">
+        <p style="font-size:11px;color:var(--ink-50);margin-bottom:14px;letter-spacing:.04em;">
+          Each enabled slide appears on the homepage hero, in order. Use the arrows to reorder; image or video, with separate desktop &amp; mobile media.
+        </p>
+        <div id="hero-list"><div class="ld-cell">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- ┌ Homepage ────────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-homepage">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Homepage</h1>
+      </div>
+      <div class="adm-body">
+        <div class="adm-card">
+          <div class="adm-card__hd">
+            <span class="adm-card__title">Featured Collections</span>
+            <span style="font-size:10px;color:var(--ink-50);">Shown on Home &amp; the Collections page</span>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:14%">Photo</th>
+              <th style="width:20%">Collection</th>
+              <th style="width:30%">Subtitle</th>
+              <th style="width:13%">On Home</th>
+              <th style="width:13%">Collections</th>
+              <th style="width:10%"></th>
+            </tr></thead>
+            <tbody id="home-cats-tb"><tr><td colspan="6" class="ld-cell">Loading…</td></tr></tbody>
+          </table>
+        </div>
+
+        <div class="hp-sections">
+          <div class="adm-card">
+            <div class="adm-card__hd">
+              <span class="adm-card__title">New Arrivals</span>
+              <span style="font-size:10px;color:var(--ink-50);"><strong id="home-new-count" style="color:var(--grn2);">0</strong> selected · top 8 show on the homepage</span>
+            </div>
+            <div style="padding:14px;">
+              <div class="hp-add">
+                <input class="form-input" id="hp-new-search" placeholder="＋ Search a product to add…" autocomplete="off"
+                       oninput="hpSuggest('new')" onfocus="hpSuggest('new')">
+                <div class="hp-suggest" id="hp-new-suggest"></div>
+              </div>
+              <div class="hp-list" id="hp-new-list"></div>
+            </div>
+          </div>
+
+          <div class="adm-card">
+            <div class="adm-card__hd">
+              <span class="adm-card__title">Best Sellers</span>
+              <span style="font-size:10px;color:var(--ink-50);"><strong id="home-best-count" style="color:var(--grn2);">0</strong> selected · top 8 show on the homepage</span>
+            </div>
+            <div style="padding:14px;">
+              <div class="hp-add">
+                <input class="form-input" id="hp-best-search" placeholder="＋ Search a product to add…" autocomplete="off"
+                       oninput="hpSuggest('best')" onfocus="hpSuggest('best')">
+                <div class="hp-suggest" id="hp-best-suggest"></div>
+              </div>
+              <div class="hp-list" id="hp-best-list"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Products ───────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-products">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Products</h1>
+        <button class="btn-green" onclick="openProductModal()"><i class="ti ti-plus"></i> Add Product</button>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <div class="filter-bar">
+            <input class="form-input" id="prod-search" type="text" placeholder="Search products…" style="max-width:200px;" oninput="filterProducts()">
+            <select class="form-select" id="prod-cat-f" style="max-width:170px;" onchange="filterProducts()">
+              <option value="">All Categories</option>
+            </select>
+            <select class="form-select" id="prod-status-f" style="max-width:130px;" onchange="filterProducts()">
+              <option value="">All Status</option>
+              <option value="1">Active</option>
+              <option value="0">Inactive</option>
+            </select>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:7%">Img</th>
+              <th style="width:22%">Name</th>
+              <th style="width:12%">Brand</th>
+              <th style="width:13%">Category</th>
+              <th style="width:10%">Base / Sell</th>
+              <th style="width:8%">Badge</th>
+              <th style="width:7%">Active</th>
+              <th style="width:21%">Actions</th>
+            </tr></thead>
+            <tbody id="prod-tb"><tr><td colspan="8" class="ld-cell">Loading products…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Categories ─────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-categories">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Categories</h1>
+        <button class="btn-green" onclick="openCategoryModal()"><i class="ti ti-plus"></i> Add Category</button>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:28%">Name</th>
+              <th style="width:28%">Slug</th>
+              <th style="width:13%">Photo</th>
+              <th style="width:10%">Sort</th>
+              <th style="width:9%">Active</th>
+              <th style="width:12%">Actions</th>
+            </tr></thead>
+            <tbody id="cat-tb"><tr><td colspan="6" class="ld-cell">Loading categories…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Variants ───────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-variants">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Variants</h1>
+        <button class="btn-green" id="add-var-btn" style="display:none;" onclick="openVariantModal()">
+          <i class="ti ti-plus"></i> Add Variant
+        </button>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0 18px;">
+          <div style="padding:12px 14px;border-bottom:0.5px solid var(--border);">
+            <label class="form-label" style="display:block;margin-bottom:5px;">Select Product</label>
+            <select class="form-select" id="var-prod-sel" style="max-width:340px;" onchange="loadVariants(this.value)">
+              <option value="">Choose a product…</option>
+            </select>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:14%">Size</th>
+              <th style="width:32%">Colour</th>
+              <th style="width:12%">Stock</th>
+              <th style="width:12%">Status</th>
+              <th style="width:30%">Actions</th>
+            </tr></thead>
+            <tbody id="var-tb">
+              <tr><td colspan="5"><div class="empty-st"><i class="ti ti-stack-2"></i><p>Select a product to manage its variants</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Inventory ──────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-inventory">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Inventory</h1>
+        <span id="inv-count" class="adm-date"></span>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <div class="filter-bar">
+            <input class="form-input" id="inv-search" type="text" placeholder="Search product or colour…" style="max-width:200px;" oninput="filterInventory()">
+            <select class="form-select" id="inv-level" style="max-width:170px;" onchange="filterInventory()">
+              <option value="">All Stock Levels</option>
+              <option value="critical">Critical (≤ 2)</option>
+              <option value="low">Low (≤ 5)</option>
+              <option value="ok">OK (&gt; 5)</option>
+            </select>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:30%">Product</th>
+              <th style="width:12%">Size</th>
+              <th style="width:22%">Colour</th>
+              <th style="width:12%">Stock</th>
+              <th style="width:12%">Threshold</th>
+              <th style="width:12%">Action</th>
+            </tr></thead>
+            <tbody id="inv-tb"><tr><td colspan="6" class="ld-cell">Loading inventory…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Orders ─────────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-orders">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Orders</h1>
+        <span id="ord-count" class="adm-date"></span>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <div class="ord-tabs">
+            <button class="ord-tab active" onclick="setOrdTab(this,'')">All</button>
+            <button class="ord-tab" onclick="setOrdTab(this,'pending')">Pending</button>
+            <button class="ord-tab" onclick="setOrdTab(this,'processing')">Processing</button>
+            <button class="ord-tab" onclick="setOrdTab(this,'shipped')">Shipped</button>
+            <button class="ord-tab" onclick="setOrdTab(this,'delivered')">Delivered</button>
+            <button class="ord-tab" onclick="setOrdTab(this,'cancelled')">Cancelled</button>
+          </div>
+          <div class="filter-bar" style="padding:8px 14px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+            <input class="form-input" id="ord-search" type="text" placeholder="Search order #, name, email, phone…" style="max-width:240px;" oninput="filterOrders()">
+            <select class="form-select" id="ord-method" style="max-width:170px;" onchange="filterOrders()">
+              <option value="">All Methods</option>
+              <option value="COD">Cash on Delivery</option>
+              <option value="instapay">InstaPay</option>
+              <option value="vodafone_cash">Vodafone Cash</option>
+            </select>
+            <select class="form-select" id="ord-paystatus" style="max-width:180px;" onchange="filterOrders()">
+              <option value="">All Payment Status</option>
+              <option value="pending_verification">Pending Verification</option>
+              <option value="verified">Verified</option>
+              <option value="rejected">Rejected</option>
+              <option value="pending">Pending</option>
+              <option value="paid">Paid</option>
+              <option value="refunded">Refunded</option>
+            </select>
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:17%">Order #</th>
+              <th style="width:16%">Customer</th>
+              <th style="width:6%">Items</th>
+              <th style="width:10%">Total</th>
+              <th style="width:12%">Status</th>
+              <th style="width:12%">Method</th>
+              <th style="width:11%">Payment</th>
+              <th style="width:9%">Date</th>
+              <th style="width:7%">Action</th>
+            </tr></thead>
+            <tbody id="ord-tb"><tr><td colspan="9" class="ld-cell">Loading orders…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Customers ──────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-customers">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Customers</h1>
+        <span id="cust-count" class="adm-date"></span>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <div class="filter-bar">
+            <input class="form-input" id="cust-search" type="text" placeholder="Search name or email…" style="max-width:220px;" oninput="filterCustomers()">
+          </div>
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:24%">Name</th>
+              <th style="width:27%">Email</th>
+              <th style="width:15%">Phone</th>
+              <th style="width:9%">Orders</th>
+              <th style="width:13%">Joined</th>
+              <th style="width:12%">Action</th>
+            </tr></thead>
+            <tbody id="cust-tb"><tr><td colspan="6" class="ld-cell">Loading customers…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Coupons ────────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-coupons">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Coupons</h1>
+        <button class="btn-green" onclick="openCouponModal()"><i class="ti ti-plus"></i> Create Coupon</button>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:14%">Code</th>
+              <th style="width:9%">Type</th>
+              <th style="width:10%">Value</th>
+              <th style="width:11%">Min Order</th>
+              <th style="width:13%">Used/Limit</th>
+              <th style="width:12%">Expires</th>
+              <th style="width:8%">Active</th>
+              <th style="width:23%">Actions</th>
+            </tr></thead>
+            <tbody id="coup-tb"><tr><td colspan="8" class="ld-cell">Loading coupons…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ┌ Settings ───────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-settings">
+      <div class="adm-topbar"><h1 class="adm-panel-title">Settings</h1></div>
+      <div class="adm-body">
+        <div class="adm-card" style="max-width:520px;margin-bottom:16px;">
+          <div class="adm-card__hd"><span class="adm-card__title">Store Configuration</span></div>
+          <div style="padding:18px;">
+            <div class="m-grp">
+              <label class="form-label">Store Name</label>
+              <input class="form-input" id="st-name" type="text" value="NOOS">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Free Shipping Threshold (EGP)</label>
+              <input class="form-input" id="st-ship" type="number" value="500" min="0">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Newsletter Coupon Code</label>
+              <input class="form-input" id="st-code" type="text" value="NOOS10">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Admin Email</label>
+              <input class="form-input" id="st-email" type="text" readonly style="opacity:0.6;">
+            </div>
+            <button class="btn-green" onclick="saveSettings()" style="margin-top:6px;"><i class="ti ti-check"></i> Save Settings</button>
+          </div>
+        </div>
+
+        <!-- Payment Settings (server-backed, used by checkout) -->
+        <div class="adm-card" style="max-width:520px;margin-bottom:16px;border-left:3px solid var(--grn);">
+          <div class="adm-card__hd"><span class="adm-card__title">Payment Settings</span></div>
+          <div style="padding:18px;">
+            <p style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6;">
+              Shown to customers at checkout when they choose InstaPay or Vodafone Cash.
+            </p>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <img src="../images/payments/instapay.png" alt="" style="width:22px;height:22px;object-fit:contain;">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);">InstaPay</span>
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Account Name</label>
+              <input class="form-input" id="st-ip-name" type="text" placeholder="NOOS Store">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">InstaPay Address / Identifier</label>
+              <input class="form-input" id="st-ip-id" type="text" placeholder="noos@instapay">
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin:16px 0 8px;">
+              <img src="../images/payments/vodafone-cash.jpg" alt="" style="width:22px;height:22px;object-fit:contain;">
+              <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);">Vodafone Cash</span>
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Account Name</label>
+              <input class="form-input" id="st-vf-name" type="text" placeholder="NOOS Store">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Vodafone Cash Number</label>
+              <input class="form-input" id="st-vf-id" type="text" placeholder="01000000000">
+            </div>
+            <div class="m-grp">
+              <label class="form-label">Payment Instructions</label>
+              <textarea class="form-textarea" id="st-pay-note" style="height:70px;" placeholder="Transfer the exact total and upload a screenshot…"></textarea>
+            </div>
+            <button class="btn-green" onclick="savePaymentSettings()" style="margin-top:6px;"><i class="ti ti-check"></i> Save Payment Settings</button>
+          </div>
+        </div>
+
+        <div class="adm-card" style="max-width:520px;border-left:3px solid var(--red);">
+          <div class="adm-card__hd"><span class="adm-card__title" style="color:var(--red)">Danger Zone</span></div>
+          <div style="padding:18px;display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="tb tb-red" style="padding:8px 14px;" onclick="confirmDanger('Clear all orders? This cannot be undone.', ()=>toast('Orders cleared (demo).','info'))">Clear All Orders</button>
+            <button class="tb tb-red" style="padding:8px 14px;" onclick="confirmDanger('Delete all guest data?', ()=>toast('Guest data cleared (demo).','info'))">Delete Guest Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- Product modal -->
+<div class="adm-modal" id="m-product">
+  <div class="adm-modal__box">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title" id="m-prod-title">Add Product</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-product')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-prod-id">
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Product Name *</label><input class="form-input" id="mp-name" type="text" placeholder="Boxy Oversized Tee"></div>
+      <div class="m-grp"><label class="form-label">SKU</label><input class="form-input" id="mp-sku" type="text" placeholder="NOOS-TEE-001"></div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Category *</label><select class="form-select" id="mp-cat"></select></div>
+      <div class="m-grp"><label class="form-label">Brand</label><input class="form-input" id="mp-brand" type="text" placeholder="NOOS"></div>
+    </div>
+    <div class="m-grp"><label class="form-label">Description</label><textarea class="form-textarea" id="mp-desc" style="height:60px;"></textarea></div>
+    <div class="m-row">
+      <div class="m-grp">
+        <label class="form-label">Base Price (EGP) *</label>
+        <input class="form-input" id="mp-base-price" type="number" min="0" step="0.01" oninput="updateSellingPrice()">
+        <div style="font-size:10px;color:var(--grn);margin-top:3px;">Selling: <strong id="mp-selling-display">—</strong> (base × 1.05)</div>
+      </div>
+      <div class="m-grp"><label class="form-label">Old Price (EGP)</label><input class="form-input" id="mp-oprice" type="number" min="0" step="0.01"></div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Badge</label>
+        <select class="form-select" id="mp-badge">
+          <option value="">None</option><option value="new">New</option>
+          <option value="bestseller">Bestseller</option><option value="sale">Sale</option>
+          <option value="limited">Limited</option>
+        </select>
+      </div>
+      <div class="m-grp"><label class="form-label">Status</label>
+        <select class="form-select" id="mp-active">
+          <option value="true">Active</option><option value="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-grp"><label class="form-label">Images (jpg/png/webp)</label>
+      <input type="file" id="mp-imgs" multiple accept=".jpg,.jpeg,.png,.webp" style="font-size:11px;padding:6px 0;">
+    </div>
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-product')">Cancel</button>
+      <button class="btn-green" onclick="saveProduct()"><i class="ti ti-check"></i> Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Category modal -->
+<div class="adm-modal" id="m-category">
+  <div class="adm-modal__box" style="width:420px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title" id="m-cat-title">Add Category</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-category')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-cat-id">
+    <div class="m-grp">
+      <label class="form-label">Name *</label>
+      <input class="form-input" id="mc-name" type="text" placeholder="T-Shirts" oninput="autoSlug()">
+    </div>
+    <div class="m-grp">
+      <label class="form-label">Slug (auto-generated)</label>
+      <input class="form-input" id="mc-slug" type="text" placeholder="t-shirts" style="font-family:monospace;font-size:11px;color:var(--muted);">
+    </div>
+    <div class="m-grp">
+      <label class="form-label">Category Photo (optional)</label>
+      <input type="hidden" id="mc-img">
+      <div id="mc-img-preview" style="display:none;margin-bottom:8px;height:80px;background:var(--ink2);position:relative;overflow:hidden;">
+        <img id="mc-img-thumb" src="" alt="" style="width:100%;height:100%;object-fit:cover;">
+        <button type="button" onclick="clearCatImg()" style="position:absolute;top:4px;right:4px;width:20px;height:20px;background:var(--red);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;"><i class="ti ti-x" style="font-size:10px;"></i></button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button type="button" class="tb tb-grn" onclick="document.getElementById('mc-img-file').click()" style="padding:5px 10px;">
+          <i class="ti ti-upload"></i> Upload Photo
+        </button>
+        <span id="mc-img-status" style="font-size:10px;color:var(--muted);">No photo selected</span>
+      </div>
+      <input type="file" id="mc-img-file" accept="image/*" style="display:none;" onchange="uploadCatImg(this)">
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Sort Order</label><input class="form-input" id="mc-sort" type="number" value="0"></div>
+      <div class="m-grp"><label class="form-label">Status</label>
+        <select class="form-select" id="mc-active">
+          <option value="true">Active</option><option value="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-category')">Cancel</button>
+      <button class="btn-green" onclick="saveCategory()"><i class="ti ti-check"></i> Save Category</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hero slide modal -->
+<div class="adm-modal" id="m-hero">
+  <div class="adm-modal__box" style="width:560px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title" id="m-hero-title">Add Hero Slide</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-hero')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-hero-id">
+
+    <div class="m-grp">
+      <label class="form-label">Media Type</label>
+      <select class="form-select" id="mh-media-type">
+        <option value="image">Image</option>
+        <option value="video">Video</option>
+        <option value="none">Text only (no media)</option>
+      </select>
+    </div>
+
+    <div class="m-row">
+      <div class="m-grp">
+        <label class="form-label">Desktop Image</label>
+        <input type="hidden" id="mh-desktop-image">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="tb tb-grn" style="padding:5px 10px;" onclick="document.getElementById('mh-desktop-image-file').click()"><i class="ti ti-upload"></i> Upload</button>
+          <span id="mh-desktop-image-st" style="font-size:10px;color:var(--ink-50);">None</span>
+        </div>
+        <input type="file" id="mh-desktop-image-file" accept="image/*" style="display:none;" onchange="uploadHeroField(this,'mh-desktop-image','mh-desktop-image-st')">
+      </div>
+      <div class="m-grp">
+        <label class="form-label">Desktop Video</label>
+        <input type="hidden" id="mh-desktop-video">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="tb tb-grn" style="padding:5px 10px;" onclick="document.getElementById('mh-desktop-video-file').click()"><i class="ti ti-upload"></i> Upload</button>
+          <span id="mh-desktop-video-st" style="font-size:10px;color:var(--ink-50);">None</span>
+        </div>
+        <input type="file" id="mh-desktop-video-file" accept="video/*" style="display:none;" onchange="uploadHeroField(this,'mh-desktop-video','mh-desktop-video-st')">
+      </div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp">
+        <label class="form-label">Mobile Image</label>
+        <input type="hidden" id="mh-mobile-image">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="tb tb-grn" style="padding:5px 10px;" onclick="document.getElementById('mh-mobile-image-file').click()"><i class="ti ti-upload"></i> Upload</button>
+          <span id="mh-mobile-image-st" style="font-size:10px;color:var(--ink-50);">None</span>
+        </div>
+        <input type="file" id="mh-mobile-image-file" accept="image/*" style="display:none;" onchange="uploadHeroField(this,'mh-mobile-image','mh-mobile-image-st')">
+      </div>
+      <div class="m-grp">
+        <label class="form-label">Mobile Video</label>
+        <input type="hidden" id="mh-mobile-video">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button type="button" class="tb tb-grn" style="padding:5px 10px;" onclick="document.getElementById('mh-mobile-video-file').click()"><i class="ti ti-upload"></i> Upload</button>
+          <span id="mh-mobile-video-st" style="font-size:10px;color:var(--ink-50);">None</span>
+        </div>
+        <input type="file" id="mh-mobile-video-file" accept="video/*" style="display:none;" onchange="uploadHeroField(this,'mh-mobile-video','mh-mobile-video-st')">
+      </div>
+    </div>
+
+    <div class="m-grp"><label class="form-label">Campaign Label</label><input class="form-input" id="mh-label" placeholder="Summer Collection 2026"></div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Title</label><input class="form-input" id="mh-title" placeholder="NOOS"></div>
+      <div class="m-grp"><label class="form-label">Subtitle</label><input class="form-input" id="mh-subtitle" placeholder="Never Out Of Stock"></div>
+    </div>
+    <div class="m-grp"><label class="form-label">Description</label><textarea class="form-textarea" id="mh-description" placeholder="Premium essentials…"></textarea></div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Primary Button Label</label><input class="form-input" id="mh-primary-label" placeholder="Shop Now"></div>
+      <div class="m-grp"><label class="form-label">Primary Button Link</label><input class="form-input" id="mh-primary-href" placeholder="pages/shop.html"></div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Secondary Button Label</label><input class="form-input" id="mh-secondary-label" placeholder="Explore Collection"></div>
+      <div class="m-grp"><label class="form-label">Secondary Button Link</label><input class="form-input" id="mh-secondary-href" placeholder="pages/collections.html"></div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Sort Order</label><input class="form-input" id="mh-sort" type="number" value="0"></div>
+      <div class="m-grp"><label class="form-label">Status</label>
+        <select class="form-select" id="mh-enabled"><option value="1">Enabled</option><option value="0">Disabled</option></select>
+      </div>
+    </div>
+
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-hero')">Cancel</button>
+      <button class="btn-green" onclick="saveHero()"><i class="ti ti-check"></i> Save Slide</button>
+    </div>
+  </div>
+</div>
+
+<!-- Variant modal -->
+<div class="adm-modal" id="m-variant">
+  <div class="adm-modal__box" style="width:480px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title" id="m-var-title">Add Colour Group</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-variant')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-var-id">
+
+    <!-- Add mode: colour + multi-size checkboxes -->
+    <div id="mv-add-mode">
+      <div class="m-row">
+        <div class="m-grp"><label class="form-label">Colour Name *</label><input class="form-input" id="mv-colour" type="text" placeholder="Forest Green"></div>
+        <div class="m-grp"><label class="form-label">Colour Hex</label><input class="form-input" id="mv-hex" type="color" value="#4A6741"></div>
+      </div>
+      <div class="m-grp">
+        <label class="form-label">Colour Images (jpg/png/webp)</label>
+        <input type="file" id="mv-imgs" multiple accept=".jpg,.jpeg,.png,.webp" style="font-size:11px;padding:6px 0;">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">These images will show when this colour is selected on the product page.</div>
+      </div>
+      <div class="m-grp">
+        <label class="form-label">Sizes &amp; Initial Stock</label>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Check each size to add, then set initial stock per size.</div>
+        <!-- Tops sizes -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Tops (XS–XXL)</div>
+          <div id="mv-sizes-tops" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <!-- Bottoms sizes -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Bottoms (28–38)</div>
+          <div id="mv-sizes-bottoms" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <!-- Shoes sizes -->
+        <div style="margin-bottom:8px;">
+          <div style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Shoes (EU 39–45)</div>
+          <div id="mv-sizes-shoes" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+        <!-- Other sizes -->
+        <div>
+          <div style="font-size:9px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;">Other</div>
+          <div id="mv-sizes-other" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit mode: single variant fields -->
+    <div id="mv-edit-mode" style="display:none;">
+      <div class="m-row">
+        <div class="m-grp">
+          <label class="form-label">Size</label>
+          <select class="form-select" id="mv-size-edit">
+            <option value="XS">XS</option><option value="S">S</option>
+            <option value="M">M</option><option value="L">L</option>
+            <option value="XL">XL</option><option value="XXL">XXL</option>
+            <option value="28">28</option><option value="30">30</option>
+            <option value="32">32</option><option value="34">34</option>
+            <option value="36">36</option><option value="38">38</option>
+            <option value="39">39</option><option value="40">40</option>
+            <option value="41">41</option><option value="42">42</option>
+            <option value="43">43</option><option value="44">44</option>
+            <option value="45">45</option>
+            <option value="One Size">One Size</option>
+            <option value="S/M">S/M</option><option value="L/XL">L/XL</option>
+          </select>
+        </div>
+        <div class="m-grp"><label class="form-label">Colour Name</label><input class="form-input" id="mv-colour-edit" type="text"></div>
+      </div>
+      <div class="m-grp"><label class="form-label">Colour Hex</label><input class="form-input" id="mv-hex-edit" type="color"></div>
+      <div class="m-grp"><label class="form-label">Status</label>
+        <select class="form-select" id="mv-active-edit">
+          <option value="true">Active</option><option value="false">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-variant')">Cancel</button>
+      <button class="btn-green" onclick="saveVariant()"><i class="ti ti-check"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Restock modal -->
+<div class="adm-modal" id="m-restock">
+  <div class="adm-modal__box" style="width:320px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title">Restock</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-restock')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="rst-vid">
+    <input type="hidden" id="rst-pid">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="rst-label">Restocking variant</div>
+    <div class="m-grp">
+      <label class="form-label">Quantity to Add</label>
+      <input class="form-input" id="rst-qty" type="number" min="1" value="10">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="rst-current"></div>
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-restock')">Cancel</button>
+      <button class="btn-green" onclick="saveRestock()"><i class="ti ti-plus"></i> Add Stock</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order detail modal -->
+<div class="adm-modal" id="m-order">
+  <div class="adm-modal__box" style="width:560px;">
+    <div class="adm-modal__hd">
+      <div>
+        <h2 class="adm-modal__title" id="m-ord-title">Order Details</h2>
+        <span style="font-size:10px;font-family:monospace;color:var(--muted);" id="m-ord-num"></span>
+      </div>
+      <button class="adm-modal__close" onclick="closeModal('m-order')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-ord-id">
+
+    <div class="om-sec">Order Items</div>
+    <div id="om-items" style="max-height:200px;overflow-y:auto;margin-bottom:4px;">
+      <div style="padding:8px;color:var(--muted);font-size:11px;">Loading…</div>
+    </div>
+
+    <div class="om-sec">Order Summary</div>
+    <div id="om-summary" style="background:var(--surf);padding:10px 12px;font-size:11px;color:var(--ink3);margin-bottom:4px;">
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
+        <span style="color:var(--muted);">Products Subtotal</span><span id="om-subtotal">—</span>
+      </div>
+      <div id="om-coupon-row" style="display:none;flex-direction:column;">
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
+          <span style="color:var(--muted);">Coupon Applied</span><span id="om-coupon-code" style="font-family:monospace;color:var(--grn);font-weight:500;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
+          <span style="color:var(--muted);">Discount</span><span id="om-discount" style="color:var(--red);"></span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:0.5px solid var(--border);">
+        <span style="color:var(--muted);">Shipping Fees</span><span id="om-shipping"></span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0;font-weight:600;font-size:12px;">
+        <span>Final Total</span><span id="om-final-total"></span>
+      </div>
+    </div>
+
+    <div class="om-sec">Shipping Address</div>
+    <div id="om-ship" style="background:var(--surf);padding:10px 12px;font-size:11px;color:var(--ink3);line-height:1.8;margin-bottom:4px;"></div>
+
+    <!-- Payment verification (manual methods only) -->
+    <div id="om-pay-block" style="display:none;">
+      <div class="om-sec">Payment Verification</div>
+      <div style="background:var(--surf);padding:12px;margin-bottom:4px;">
+        <div style="display:flex;gap:14px;">
+          <div id="om-proof-wrap" style="flex-shrink:0;">
+            <div id="om-proof-thumb" style="width:120px;height:150px;background:var(--white);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;"
+                 onclick="enlargeProof()">
+              <span style="font-size:10px;color:var(--muted);">No proof</span>
+            </div>
+            <div style="font-size:9px;color:var(--muted);text-align:center;margin-top:4px;">Click to enlarge</div>
+          </div>
+          <div style="flex:1;min-width:0;font-size:11px;color:var(--ink3);line-height:1.7;">
+            <div><span style="color:var(--muted);">Method:</span> <span id="om-pay-method" style="font-weight:500;"></span></div>
+            <div><span style="color:var(--muted);">Status:</span> <span id="om-pay-status-pill"></span></div>
+            <div id="om-pay-verified" style="display:none;"></div>
+            <div class="m-grp" style="margin-top:8px;">
+              <label class="form-label">Verification Notes (optional)</label>
+              <textarea class="form-textarea" id="om-pay-notes" style="height:46px;" placeholder="e.g. reference matched / amount mismatch…"></textarea>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:8px;">
+              <button class="btn-green" style="flex:1;padding:8px;" onclick="verifyPayment('approve')"><i class="ti ti-check"></i> Approve</button>
+              <button class="tb tb-red" style="flex:1;padding:8px;justify-content:center;" onclick="verifyPayment('reject')"><i class="ti ti-x"></i> Reject</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="om-sec">Update Order</div>
+    <div class="m-row" style="margin-top:8px;">
+      <div class="m-grp"><label class="form-label">Order Status</label>
+        <select class="form-select" id="om-status">
+          <option value="pending">Pending</option><option value="processing">Processing</option>
+          <option value="shipped">Shipped</option><option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+      <div class="m-grp"><label class="form-label">Payment Status</label>
+        <select class="form-select" id="om-pay">
+          <option value="pending">Pending</option>
+          <option value="pending_verification">Pending Verification</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+          <option value="paid">Paid</option>
+          <option value="refunded">Refunded</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-grp"><label class="form-label">Admin Notes</label><textarea class="form-textarea" id="om-notes" style="height:52px;"></textarea></div>
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-order')">Close</button>
+      <button class="btn-green" onclick="saveOrderStatus()"><i class="ti ti-check"></i> Update Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- Proof lightbox -->
+<div id="proof-lightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;align-items:center;justify-content:center;padding:24px;cursor:zoom-out;" onclick="closeProofLightbox()">
+  <img id="proof-lightbox-img" src="" alt="Payment proof" style="max-width:92vw;max-height:92vh;object-fit:contain;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+</div>
+
+<!-- Coupon modal -->
+<div class="adm-modal" id="m-coupon">
+  <div class="adm-modal__box" style="width:440px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title" id="m-coup-title">Create Coupon</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-coupon')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="m-coup-id">
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Code *</label><input class="form-input" id="cp-code" type="text" placeholder="NOOS10" style="text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="m-grp"><label class="form-label">Type</label>
+        <select class="form-select" id="cp-type">
+          <option value="percentage">Percentage (%)</option>
+          <option value="fixed">Fixed (EGP)</option>
+        </select>
+      </div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Value *</label><input class="form-input" id="cp-val" type="number" min="0" placeholder="10"></div>
+      <div class="m-grp"><label class="form-label">Min Order (EGP)</label><input class="form-input" id="cp-min" type="number" min="0" value="0"></div>
+    </div>
+    <div class="m-row">
+      <div class="m-grp"><label class="form-label">Usage Limit (blank = unlimited)</label><input class="form-input" id="cp-limit" type="number" min="0" placeholder="Unlimited"></div>
+      <div class="m-grp"><label class="form-label">Expires At</label><input class="form-input" id="cp-exp" type="datetime-local"></div>
+    </div>
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-coupon')">Cancel</button>
+      <button class="btn-green" onclick="saveCoupon()"><i class="ti ti-check"></i> Save Coupon</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════════════ -->
+<script src="../js/utils.js"></script>
+<script src="../js/api.js"></script>
+<script>
+/* ── Auth guard ───────────────────────────────────────────── */
+(function() {
+  if (!Auth.isAdmin()) window.location.href = '../index.html';
+})();
+
+/* ── State ────────────────────────────────────────────────── */
+const _user = Auth.getUser() || {};
+let _curPanel = 'dashboard';
+let _varProdId = null;   // selected product in variants panel
+let _allProducts = [];
+let _allOrders   = [];
+let _allCustomers = [];
+let _allInventory = [];
+let _allCoupons  = [];
+let _ordFilter   = '';
+
+/* ── Date ─────────────────────────────────────────────────── */
+document.getElementById('dash-date').textContent =
+  new Date().toLocaleDateString('en-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+/* ── Toast ────────────────────────────────────────────────── */
+function toast(msg, type = 'success') {
+  let c = document.getElementById('toast-container');
+  if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.appendChild(c); }
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+/* ── Format helpers ───────────────────────────────────────── */
+function fEGP(n) { return 'EGP ' + Number(n||0).toLocaleString('en-EG', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function fDate(d) { return d ? new Date(d).toLocaleDateString('en-EG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'; }
+function fMon(d)  { return d ? new Date(d).toLocaleDateString('en-EG', { month: 'short', year: 'numeric' }) : '—'; }
+function slugify(s) { return (s||'').toLowerCase().trim().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,''); }
+function initials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+const AV_COLORS = ['#4A6741','#3A5232','#4A4A4A','#A0843A','#B03A2E'];
+function avColor(i) { return AV_COLORS[i % AV_COLORS.length]; }
+
+function pillHtml(status) {
+  const m = { pending:'ap-pending', processing:'ap-processing', shipped:'ap-shipped', delivered:'ap-delivered', cancelled:'ap-cancelled', paid:'ap-paid', refunded:'ap-refunded', pending_verification:'ap-pending_verification', verified:'ap-verified', rejected:'ap-rejected' };
+  const labels = { pending_verification:'To Verify' };
+  return `<span class="adm-pill ${m[status]||'ap-inactive'}">${labels[status]||status||'—'}</span>`;
+}
+const PAY_METHOD_LABELS = { COD:'Cash on Delivery', instapay:'InstaPay', vodafone_cash:'Vodafone Cash' };
+function payMethodLabel(m) { return PAY_METHOD_LABELS[m] || m || '—'; }
+function badgeHtml(b) {
+  if (!b) return '—';
+  const m = { new:'badge-new', bestseller:'badge-bestseller', sale:'badge-sale', limited:'badge-limited' };
+  return `<span class="adm-pill ${m[b]||''}" style="border-radius:2px;">${b}</span>`;
+}
+
+/* ── API helper (admin) ───────────────────────────────────── */
+async function call(method, path, body, isForm) {
+  const headers = { Authorization: 'Bearer ' + Auth.getToken() };
+  if (!isForm) headers['Content-Type'] = 'application/json';
+  const opts = { method, headers };
+  if (body) opts.body = isForm ? body : JSON.stringify(body);
+  const r = await fetch('http://localhost:3000/api' + path, opts);
+  if (r.status === 401 || r.status === 403) { Auth.clear(); window.location.href = '../index.html'; }
+  const j = await r.json();
+  if (!j.success) throw new Error(j.message || 'Request failed');
+  return j.data;
+}
+
+/* ── Navigation ───────────────────────────────────────────── */
+function goPanel(id, navEl) {
+  document.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.adm-nav[data-panel]').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  else { const el = document.querySelector('[data-panel="' + id + '"]'); if (el) el.classList.add('active'); }
+  _curPanel = id;
+  ({
+    dashboard: loadDashboard, hero: loadHero, homepage: loadHomepage,
+    products: loadProducts, categories: loadCategories,
+    variants: loadVariantProducts, inventory: loadInventory, orders: loadOrders,
+    customers: loadCustomers, coupons: loadCoupons, settings: loadSettings
+  })[id]?.();
+}
+
+/* ── Modal system ─────────────────────────────────────────── */
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.adm-modal.open').forEach(m => m.classList.remove('open')); });
+document.querySelectorAll('.adm-modal').forEach(m => m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); }));
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION H — DASHBOARD
+───────────────────────────────────────────────────────────── */
+async function loadDashboard() {
+  try {
+    const d = await call('GET', '/admin/stats');
+    document.getElementById('s-products').textContent  = d.stats.productCount;
+    document.getElementById('s-orders').textContent    = d.stats.orderCount;
+    document.getElementById('s-revenue').textContent   = Number(d.stats.revenue||0).toLocaleString('en-EG', {maximumFractionDigits:0});
+    document.getElementById('s-customers').textContent = d.stats.customerCount;
+
+    const ro = d.recentOrders || [];
+    document.getElementById('dash-orders-tb').innerHTML = ro.length
+      ? ro.map(o => `<tr>
+          <td title="${o.order_number}" style="font-family:monospace;font-size:10px;">${o.order_number}</td>
+          <td>${o.customer_name || '—'}</td>
+          <td>${fEGP(o.total)}</td>
+          <td>${pillHtml(o.order_status)}</td>
+          <td><button class="tb tb-grn" onclick="openOrderModal(${o.id})">View</button></td>
+        </tr>`).join('')
+      : '<tr><td colspan="5"><div class="empty-st"><i class="ti ti-receipt"></i><p>No orders yet</p></div></td></tr>';
+
+    const ls = d.lowStock || [];
+    document.getElementById('dash-lowstock').innerHTML = ls.length
+      ? ls.map(v => `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--border);">
+          <span style="font-size:11px;">${v.product_name} — <span style="color:var(--muted)">${v.size} / ${v.colour}</span></span>
+          <span style="display:flex;align-items:center;gap:6px;">
+            <span style="color:var(--red);font-weight:500;font-size:11px;">${v.stock} left</span>
+            <button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${v.product_name} — ${v.size}/${v.colour}',${v.stock})">Restock</button>
+          </span>
+        </div>`).join('')
+      : '<p style="color:var(--muted);font-size:11px;padding:8px 0;">All variants sufficiently stocked.</p>';
+  } catch (e) { toast('Failed to load dashboard: ' + e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION I — PRODUCTS
+───────────────────────────────────────────────────────────── */
+async function loadProducts() {
+  document.getElementById('prod-tb').innerHTML = '<tr><td colspan="8" class="ld-cell">Loading…</td></tr>';
+  try {
+    [_allProducts] = await Promise.all([call('GET', '/products/admin/all')]);
+    const cats = [...new Set(_allProducts.map(p => p.category_name).filter(Boolean))].sort();
+    const sel = document.getElementById('prod-cat-f');
+    sel.innerHTML = '<option value="">All Categories</option>' +
+      cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    filterProducts();
+  } catch (e) { toast('Failed to load products: ' + e.message, 'error'); }
+}
+
+function filterProducts() {
+  const q = (document.getElementById('prod-search').value || '').toLowerCase();
+  const cat = document.getElementById('prod-cat-f').value;
+  const st = document.getElementById('prod-status-f').value;
+  const list = _allProducts.filter(p =>
+    (!q || p.name.toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q)) &&
+    (!cat || p.category_name === cat) &&
+    (st === '' || String(p.active ? 1 : 0) === st)
+  );
+  document.getElementById('prod-tb').innerHTML = list.length
+    ? list.map(p => {
+        const bp = p.base_price ? fEGP(p.base_price) : '—';
+        const sp = fEGP(p.price);
+        return `<tr style="${!p.active ? 'opacity:0.45;' : ''}">
+        <td>${p.image_url
+          ? `<img src="${p.image_url}" style="width:32px;height:42px;object-fit:cover;">`
+          : '<i class="ti ti-shirt" style="font-size:18px;color:var(--border2);"></i>'}</td>
+        <td style="font-weight:500;" title="${p.name}">${p.name}</td>
+        <td style="color:var(--grn);font-size:10px;font-weight:500;">${p.brand||'—'}</td>
+        <td style="color:var(--muted);font-size:10px;">${p.category_name||'—'}</td>
+        <td style="font-size:10px;"><span style="color:var(--muted);">${bp}</span><span style="color:var(--ink);"> / ${sp}</span></td>
+        <td>${badgeHtml(p.badge)}</td>
+        <td><div class="tog ${p.active?'on':''}" onclick="toggleProductActive(${p.id},${!!p.active})"></div></td>
+        <td>
+          <button class="tb tb-grn" onclick="openProductModal(${p.id})">Edit</button>
+          <button class="tb tb-red" onclick="deleteProduct(${p.id},'${p.name.replace(/'/g,"\\'")}')">Del</button>
+        </td>
+      </tr>`;
+      }).join('')
+    : '<tr><td colspan="8"><div class="empty-st"><i class="ti ti-shirt-off"></i><p>No products found</p><button class="btn-green" onclick="openProductModal()"><i class="ti ti-plus"></i> Add Product</button></div></td></tr>';
+}
+
+function updateSellingPrice() {
+  const bp = parseFloat(document.getElementById('mp-base-price').value) || 0;
+  const sp = bp > 0 ? 'EGP ' + (bp * 1.05).toFixed(0) : '—';
+  document.getElementById('mp-selling-display').textContent = sp;
+}
+
+async function openProductModal(id) {
+  document.getElementById('m-prod-id').value = id || '';
+  document.getElementById('m-prod-title').textContent = id ? 'Edit Product' : 'Add Product';
+  try {
+    const cats = await call('GET', '/categories/admin/all');
+    document.getElementById('mp-cat').innerHTML =
+      cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    if (id) {
+      const p = await call('GET', `/products/${id}`);
+      document.getElementById('mp-name').value       = p.name || '';
+      document.getElementById('mp-sku').value        = p.sku  || '';
+      document.getElementById('mp-brand').value      = p.brand || '';
+      document.getElementById('mp-desc').value       = p.description || '';
+      document.getElementById('mp-base-price').value = p.base_price || p.price || '';
+      document.getElementById('mp-oprice').value     = p.old_price || '';
+      document.getElementById('mp-badge').value      = p.badge || '';
+      document.getElementById('mp-active').value     = p.active ? 'true' : 'false';
+      document.getElementById('mp-cat').value        = p.category_id || '';
+      updateSellingPrice();
+    } else {
+      ['mp-name','mp-sku','mp-brand','mp-desc','mp-base-price','mp-oprice'].forEach(x => document.getElementById(x).value = '');
+      document.getElementById('mp-badge').value  = '';
+      document.getElementById('mp-active').value = 'true';
+      document.getElementById('mp-selling-display').textContent = '—';
+    }
+    openModal('m-product');
+  } catch (e) { toast('Failed to load form: ' + e.message, 'error'); }
+}
+
+async function saveProduct() {
+  const id = document.getElementById('m-prod-id').value;
+  const name = document.getElementById('mp-name').value.trim();
+  const basePrice = document.getElementById('mp-base-price').value;
+  const catId = document.getElementById('mp-cat').value;
+  if (!name || !basePrice || !catId) { toast('Name, base price and category are required', 'error'); return; }
+
+  const fd = new FormData();
+  fd.append('name', name);
+  fd.append('sku', document.getElementById('mp-sku').value);
+  fd.append('brand', document.getElementById('mp-brand').value);
+  fd.append('categoryId', catId);
+  fd.append('description', document.getElementById('mp-desc').value);
+  fd.append('basePrice', basePrice);
+  fd.append('oldPrice', document.getElementById('mp-oprice').value || '');
+  fd.append('badge', document.getElementById('mp-badge').value);
+  fd.append('active', document.getElementById('mp-active').value);
+  for (const f of document.getElementById('mp-imgs').files) fd.append('images', f);
+  try {
+    if (id) await call('PUT', `/products/${id}`, fd, true);
+    else    await call('POST', '/products', fd, true);
+    toast(id ? 'Product updated' : 'Product created');
+    closeModal('m-product');
+    loadProducts();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function toggleProductActive(id, current) {
+  const fd = new FormData();
+  fd.append('active', current ? 'false' : 'true');
+  try { await call('PUT', `/products/${id}`, fd, true); loadProducts(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteProduct(id, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try { await call('DELETE', `/products/${id}`); toast('Product deleted'); loadProducts(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION J — CATEGORIES
+───────────────────────────────────────────────────────────── */
+async function uploadCatImg(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('mc-img-status');
+  status.textContent = 'Uploading…';
+  try {
+    const fd = new FormData();
+    fd.append('image', file);
+    const token = localStorage.getItem('noos_token');
+    const res = await fetch('/api/categories/upload', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: fd
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.message);
+    document.getElementById('mc-img').value = data.data.url;
+    document.getElementById('mc-img-thumb').src = data.data.url;
+    document.getElementById('mc-img-preview').style.display = 'block';
+    status.textContent = file.name;
+    input.value = '';
+  } catch (e) {
+    status.textContent = 'Upload failed';
+    toast(e.message, 'error');
+  }
+}
+
+function clearCatImg() {
+  document.getElementById('mc-img').value = '';
+  document.getElementById('mc-img-thumb').src = '';
+  document.getElementById('mc-img-preview').style.display = 'none';
+  document.getElementById('mc-img-status').textContent = 'No photo selected';
+}
+
+let _allCats = [];
+async function loadCategories() {
+  document.getElementById('cat-tb').innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allCats = await call('GET', '/categories/admin/all');
+    document.getElementById('cat-tb').innerHTML = _allCats.length
+      ? _allCats.map(c => `<tr>
+          <td style="font-weight:500;">${c.name}</td>
+          <td style="font-family:monospace;font-size:10px;color:var(--muted);" title="${c.slug}">${c.slug}</td>
+          <td>${c.image_url ? `<img src="${c.image_url}" style="width:36px;height:28px;object-fit:cover;display:block;">` : '<span style="color:var(--muted);">—</span>'}</td>
+          <td>${c.sort_order}</td>
+          <td><div class="tog ${c.active?'on':''}" onclick="toggleCatActive(${c.id},${!!c.active})"></div></td>
+          <td>
+            <button class="tb tb-grn" onclick="openCategoryModal(${c.id})">Edit</button>
+            <button class="tb tb-red" onclick="deleteCategory(${c.id},'${c.name.replace(/'/g,"\\'")}')">Del</button>
+          </td>
+        </tr>`).join('')
+      : '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-category-2"></i><p>No categories yet</p></div></td></tr>';
+  } catch (e) { toast('Failed to load categories: ' + e.message, 'error'); }
+}
+
+function autoSlug() {
+  const v = document.getElementById('mc-name').value;
+  document.getElementById('mc-slug').value = slugify(v);
+}
+
+async function openCategoryModal(id) {
+  document.getElementById('m-cat-id').value = id || '';
+  document.getElementById('m-cat-title').textContent = id ? 'Edit Category' : 'Add Category';
+  if (id) {
+    const c = _allCats.find(x => x.id == id) || {};
+    document.getElementById('mc-name').value   = c.name || '';
+    document.getElementById('mc-slug').value   = c.slug || '';
+    document.getElementById('mc-sort').value   = c.sort_order || 0;
+    document.getElementById('mc-active').value = c.active ? 'true' : 'false';
+    if (c.image_url) {
+      document.getElementById('mc-img').value = c.image_url;
+      document.getElementById('mc-img-thumb').src = c.image_url;
+      document.getElementById('mc-img-preview').style.display = 'block';
+      document.getElementById('mc-img-status').textContent = 'Current photo';
+    } else {
+      clearCatImg();
+    }
+  } else {
+    ['mc-name','mc-slug'].forEach(x => document.getElementById(x).value = '');
+    clearCatImg();
+    document.getElementById('mc-sort').value   = 0;
+    document.getElementById('mc-active').value = 'true';
+  }
+  openModal('m-category');
+}
+
+async function saveCategory() {
+  const id = document.getElementById('m-cat-id').value;
+  const name = document.getElementById('mc-name').value.trim();
+  if (!name) { toast('Name is required', 'error'); return; }
+  const data = {
+    name,
+    imageUrl: document.getElementById('mc-img').value || '',
+    sortOrder: document.getElementById('mc-sort').value || 0,
+    active: document.getElementById('mc-active').value === 'true'
+  };
+  try {
+    if (id) await call('PUT', `/categories/${id}`, data);
+    else    await call('POST', '/categories', data);
+    toast(id ? 'Category updated' : 'Category created');
+    closeModal('m-category');
+    loadCategories();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function toggleCatActive(id, current) {
+  try {
+    await call('PUT', `/categories/${id}`, { active: !current });
+    loadCategories();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteCategory(id, name) {
+  if (!confirm(`Delete category "${name}"? Products in this category will need reassigning.`)) return;
+  try { await call('DELETE', `/categories/${id}`); toast('Category deleted'); loadCategories(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION K — VARIANTS
+───────────────────────────────────────────────────────────── */
+let _allVariants = [];
+async function loadVariantProducts() {
+  try {
+    const prods = await call('GET', '/products/admin/all');
+    const prev = _varProdId;
+    document.getElementById('var-prod-sel').innerHTML =
+      '<option value="">Choose a product…</option>' +
+      prods.map(p => `<option value="${p.id}" ${String(p.id)===String(prev)?'selected':''}>${p.name}</option>`).join('');
+    if (prev) loadVariants(prev);
+  } catch (e) { toast('Failed to load products: ' + e.message, 'error'); }
+}
+
+async function loadVariants(productId) {
+  if (!productId) {
+    _varProdId = null;
+    document.getElementById('add-var-btn').style.display = 'none';
+    document.getElementById('var-tb').innerHTML =
+      '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-stack-2"></i><p>Select a product to manage its variants</p></div></td></tr>';
+    return;
+  }
+  _varProdId = productId;
+  document.getElementById('add-var-btn').style.display = 'inline-flex';
+  document.getElementById('var-tb').innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allVariants = await call('GET', `/products/${productId}/variants?admin=1`);
+    document.getElementById('var-tb').innerHTML = _allVariants.length
+      ? _allVariants.map(v => {
+          const stockColor = (v.stock||0) <= (v.low_stock_threshold||5) ? 'color:var(--red);' : 'color:var(--ink3);';
+          return `<tr>
+            <td style="font-weight:500;">${v.size}</td>
+            <td><span class="col-dot" style="background:${v.colour_hex||'#ccc'};"></span>${v.colour}</td>
+            <td style="font-weight:500;${stockColor}">${v.stock??0}</td>
+            <td><span class="adm-pill ${v.active?'ap-active':'ap-inactive'}">${v.active?'Active':'Inactive'}</span></td>
+            <td>
+              <button class="tb tb-gold" onclick="openRestockModal(${v.id},${_varProdId},'${(v.colour||'').replace(/'/g,"\\'")} ${v.size}',${v.stock||0})">Restock</button>
+              <button class="tb tb-grn" onclick="openEditVariantModal(${v.id})">Edit</button>
+              <button class="tb tb-red" onclick="deleteVariant(${v.id})">Del</button>
+            </td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="5"><div class="empty-st"><i class="ti ti-stack-2"></i><p>No variants yet</p><button class="btn-green" onclick="openVariantModal()"><i class="ti ti-plus"></i> Add First Variant</button></div></td></tr>';
+  } catch (e) { toast('Failed to load variants: ' + e.message, 'error'); }
+}
+
+const TOPS_SIZES    = ['XS','S','M','L','XL','XXL'];
+const BOTTOMS_SIZES = ['28','30','32','34','36','38'];
+const SHOES_SIZES   = ['39','40','41','42','43','44','45'];
+const OTHER_SIZES   = ['One Size','S/M','L/XL'];
+
+function buildSizeCheckboxes() {
+  function makeRow(containerId, sizes) {
+    const el = document.getElementById(containerId);
+    el.innerHTML = sizes.map(s => `
+      <label style="display:flex;align-items:center;gap:5px;font-size:11px;cursor:pointer;background:var(--surf);border:1px solid var(--border2);padding:3px 7px;min-width:52px;">
+        <input type="checkbox" class="mv-size-cb" value="${s}" style="margin:0;accent-color:var(--ink);">
+        <span>${s}</span>
+        <input type="number" class="mv-size-stock" placeholder="Qty" min="0" value="0"
+          style="width:44px;border:none;border-left:1px solid var(--border2);padding:0 4px;font-size:10px;background:var(--white);margin-left:2px;">
+      </label>`).join('');
+  }
+  makeRow('mv-sizes-tops', TOPS_SIZES);
+  makeRow('mv-sizes-bottoms', BOTTOMS_SIZES);
+  makeRow('mv-sizes-shoes', SHOES_SIZES);
+  makeRow('mv-sizes-other', OTHER_SIZES);
+}
+
+function openVariantModal() {
+  if (!_varProdId) { toast('Select a product first', 'error'); return; }
+  document.getElementById('m-var-id').value = '';
+  document.getElementById('m-var-title').textContent = 'Add Colour Group';
+  document.getElementById('mv-colour').value = '';
+  document.getElementById('mv-hex').value    = '#0D0D0D';
+  document.getElementById('mv-imgs').value   = '';
+  document.getElementById('mv-add-mode').style.display  = '';
+  document.getElementById('mv-edit-mode').style.display = 'none';
+  buildSizeCheckboxes();
+  openModal('m-variant');
+}
+
+function openEditVariantModal(id) {
+  const v = _allVariants.find(x => x.id == id);
+  if (!v) { toast('Variant not found', 'error'); return; }
+  document.getElementById('m-var-id').value  = id;
+  document.getElementById('m-var-title').textContent = 'Edit Variant';
+  document.getElementById('mv-add-mode').style.display  = 'none';
+  document.getElementById('mv-edit-mode').style.display = '';
+  document.getElementById('mv-size-edit').value    = v.size || 'M';
+  document.getElementById('mv-colour-edit').value  = v.colour || '';
+  document.getElementById('mv-hex-edit').value     = v.colour_hex || '#0D0D0D';
+  document.getElementById('mv-active-edit').value  = v.active ? 'true' : 'false';
+  openModal('m-variant');
+}
+
+async function saveVariant() {
+  if (!_varProdId) { toast('No product selected', 'error'); return; }
+  const id = document.getElementById('m-var-id').value;
+  try {
+    if (id) {
+      // Edit single variant
+      const colour = document.getElementById('mv-colour-edit').value.trim();
+      if (!colour) { toast('Colour name is required', 'error'); return; }
+      await call('PUT', `/products/${_varProdId}/variants/${id}`, {
+        size:      document.getElementById('mv-size-edit').value,
+        colour,
+        colourHex: document.getElementById('mv-hex-edit').value,
+        active:    document.getElementById('mv-active-edit').value === 'true'
+      });
+      toast('Variant updated');
+    } else {
+      // Create multi-size colour group
+      const colour = document.getElementById('mv-colour').value.trim();
+      if (!colour) { toast('Colour name is required', 'error'); return; }
+      const colourHex = document.getElementById('mv-hex').value;
+      const checked = document.querySelectorAll('.mv-size-cb:checked');
+      if (checked.length === 0) { toast('Select at least one size', 'error'); return; }
+
+      // Upload colour-specific images if provided
+      const imgInput = document.getElementById('mv-imgs');
+      if (imgInput && imgInput.files.length > 0) {
+        const fd = new FormData();
+        fd.append('colour', colour);
+        for (const f of imgInput.files) fd.append('images', f);
+        try {
+          await call('POST', `/products/${_varProdId}/colour-images`, fd, true);
+        } catch (e) {
+          toast('Image upload failed: ' + e.message, 'error');
+        }
+      }
+
+      let created = 0;
+      for (const cb of checked) {
+        const stock = parseInt(cb.closest('label').querySelector('.mv-size-stock').value) || 0;
+        try {
+          await call('POST', `/products/${_varProdId}/variants`, { size: cb.value, colour, colourHex, stock });
+          created++;
+        } catch (e) {
+          toast(`${cb.value}: ${e.message}`, 'error');
+        }
+      }
+      if (created > 0) toast(`Created ${created} variant${created > 1 ? 's' : ''}`);
+    }
+    closeModal('m-variant');
+    loadVariants(_varProdId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteVariant(id) {
+  if (!confirm('Delete this variant?')) return;
+  try {
+    await call('DELETE', `/products/${_varProdId}/variants/${id}`);
+    toast('Variant deleted');
+    loadVariants(_varProdId);
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION L — INVENTORY
+───────────────────────────────────────────────────────────── */
+async function loadInventory() {
+  document.getElementById('inv-tb').innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    const d = await call('GET', '/admin/stats');
+    _allInventory = d.lowStock || [];
+    document.getElementById('inv-count').textContent = _allInventory.length
+      ? `${_allInventory.length} variant${_allInventory.length !== 1 ? 's' : ''} below threshold`
+      : 'All stocked';
+    filterInventory();
+  } catch (e) { toast('Failed to load inventory: ' + e.message, 'error'); }
+}
+
+function filterInventory() {
+  const q = (document.getElementById('inv-search').value || '').toLowerCase();
+  const lv = document.getElementById('inv-level').value;
+  const list = _allInventory.filter(v => {
+    const matchQ = !q || v.product_name.toLowerCase().includes(q) || (v.colour||'').toLowerCase().includes(q);
+    const matchLv = !lv ||
+      (lv === 'critical' && v.stock <= 2) ||
+      (lv === 'low'  && v.stock > 2 && v.stock <= 5) ||
+      (lv === 'ok'   && v.stock > 5);
+    return matchQ && matchLv;
+  });
+  document.getElementById('inv-tb').innerHTML = list.length
+    ? list.map(v => {
+        const rowCls = v.stock <= 2 ? 'ls-critical' : v.stock <= 5 ? 'ls-warning' : '';
+        const stColor = v.stock <= 2 ? 'color:var(--red);font-weight:500;' : v.stock <= 5 ? 'color:var(--gold);font-weight:500;' : '';
+        return `<tr class="${rowCls}">
+          <td style="font-weight:500;" title="${v.product_name}">${v.product_name}</td>
+          <td>${v.size}</td>
+          <td><span class="col-dot" style="background:${v.colour_hex||'#ccc'};"></span>${v.colour}</td>
+          <td style="${stColor}">${v.stock}</td>
+          <td>${v.low_stock_threshold||5}</td>
+          <td><button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${(v.product_name||'').replace(/'/g,"\\'")} — ${v.size}/${v.colour}',${v.stock})">Restock</button></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-check"></i><p>All variants sufficiently stocked</p></div></td></tr>';
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RESTOCK MODAL (shared)
+───────────────────────────────────────────────────────────── */
+function openRestockModal(variantId, productId, label, currentStock) {
+  document.getElementById('rst-vid').value       = variantId;
+  document.getElementById('rst-pid').value       = productId;
+  document.getElementById('rst-qty').value       = 10;
+  document.getElementById('rst-label').textContent   = 'Restocking: ' + (label || 'variant');
+  document.getElementById('rst-current').textContent = currentStock !== undefined
+    ? `Current stock: ${currentStock}`
+    : '';
+  openModal('m-restock');
+}
+
+async function saveRestock() {
+  const vid = document.getElementById('rst-vid').value;
+  const pid = document.getElementById('rst-pid').value;
+  const qty = parseInt(document.getElementById('rst-qty').value);
+  if (!qty || qty < 1) { toast('Enter a valid quantity', 'error'); return; }
+  try {
+    await call('PATCH', `/products/${pid}/variants/${vid}/restock`, { qty });
+    toast(`Added ${qty} units`);
+    closeModal('m-restock');
+    if (_varProdId) loadVariants(_varProdId);
+    if (_curPanel === 'inventory') loadInventory();
+    if (_curPanel === 'dashboard') loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION M — ORDERS
+───────────────────────────────────────────────────────────── */
+async function loadOrders() {
+  document.getElementById('ord-tb').innerHTML = '<tr><td colspan="8" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allOrders = await call('GET', '/orders/admin/all');
+    document.getElementById('ord-count').textContent = `${_allOrders.length} orders`;
+    filterOrders();
+  } catch (e) { toast('Failed to load orders: ' + e.message, 'error'); }
+}
+
+function setOrdTab(el, status) {
+  document.querySelectorAll('.ord-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  _ordFilter = status;
+  filterOrders();
+}
+
+function filterOrders() {
+  const q = (document.getElementById('ord-search').value || '').toLowerCase();
+  const method = document.getElementById('ord-method').value;
+  const payStatus = document.getElementById('ord-paystatus').value;
+  let list = _ordFilter ? _allOrders.filter(o => o.order_status === _ordFilter) : _allOrders;
+  if (method) list = list.filter(o => o.payment_method === method);
+  if (payStatus) list = list.filter(o => o.payment_status === payStatus);
+  if (q) list = list.filter(o =>
+    (o.order_number||'').toLowerCase().includes(q) ||
+    (o.customer_name||'').toLowerCase().includes(q) ||
+    (o.customer_email||'').toLowerCase().includes(q) ||
+    (o.customer_phone||'').toLowerCase().includes(q) ||
+    (o.guest_email||'').toLowerCase().includes(q) ||
+    (o.guest_phone||'').toLowerCase().includes(q) ||
+    (o.ship_full_name||'').toLowerCase().includes(q) ||
+    (o.ship_phone||'').toLowerCase().includes(q)
+  );
+  document.getElementById('ord-tb').innerHTML = list.length
+    ? list.map(o => {
+        const cust = o.customer_name || (o.guest_email ? `Guest · ${o.guest_email}` : o.ship_full_name || '—');
+        const flag = o.payment_status === 'pending_verification'
+          ? ' <i class="ti ti-alert-circle" style="color:#7A6020;font-size:12px;vertical-align:-1px;" title="Awaiting verification"></i>' : '';
+        return `<tr>
+          <td style="font-family:monospace;font-size:10px;" title="${o.order_number}">${o.order_number}</td>
+          <td title="${cust}">${cust}</td>
+          <td>${o.item_count ?? '—'}</td>
+          <td>${fEGP(o.total)}</td>
+          <td>${pillHtml(o.order_status)}</td>
+          <td style="font-size:10px;">${payMethodLabel(o.payment_method)}</td>
+          <td>${pillHtml(o.payment_status)}${flag}</td>
+          <td>${fDate(o.created_at)}</td>
+          <td><button class="tb tb-grn" onclick="openOrderModal(${o.id})">View</button></td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="9"><div class="empty-st"><i class="ti ti-receipt"></i><p>No matching orders found</p></div></td></tr>`;
+}
+
+async function openOrderModal(id) {
+  document.getElementById('m-ord-id').value = id;
+  document.getElementById('m-ord-title').textContent = 'Order Details';
+  document.getElementById('m-ord-num').textContent = '';
+  document.getElementById('om-items').innerHTML = '<div style="padding:8px;color:var(--muted);font-size:11px;">Loading…</div>';
+  document.getElementById('om-ship').innerHTML = '…';
+  openModal('m-order');
+  try {
+    const o = await call('GET', `/orders/${id}`);
+    document.getElementById('m-ord-title').textContent = 'Order Details';
+    document.getElementById('m-ord-num').textContent   = o.order_number || ('Order #' + id);
+    document.getElementById('om-status').value = o.order_status || 'pending';
+    document.getElementById('om-pay').value    = o.payment_status || 'pending';
+    document.getElementById('om-notes').value  = o.admin_notes || '';
+
+    const items = o.items || [];
+    document.getElementById('om-items').innerHTML = items.length
+      ? items.map(i => `<div class="om-item">
+          <div class="om-thumb">${i.image_url
+            ? `<img src="${i.image_url}" alt="">`
+            : '<i class="ti ti-shirt" style="color:var(--border2);font-size:14px;"></i>'}</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${i.product_name}</div>
+            <div style="color:var(--muted);font-size:10px;">${i.variant_label}</div>
+          </div>
+          <div style="color:var(--muted);min-width:28px;text-align:center;">×${i.quantity}</div>
+          <div style="min-width:80px;text-align:right;font-weight:500;">${fEGP(i.line_total)}</div>
+        </div>`).join('')
+      : '<div style="padding:8px;color:var(--muted);font-size:11px;">No items.</div>';
+
+    // Financial breakdown
+    document.getElementById('om-subtotal').textContent    = fEGP(o.subtotal);
+    document.getElementById('om-shipping').textContent    = Number(o.shipping_cost) === 0 ? 'Free' : fEGP(o.shipping_cost);
+    document.getElementById('om-final-total').textContent = fEGP(o.total);
+    if (o.coupon_code && Number(o.discount) > 0) {
+      document.getElementById('om-coupon-row').style.display = 'flex';
+      document.getElementById('om-coupon-code').textContent  = o.coupon_code;
+      document.getElementById('om-discount').textContent     = '− ' + fEGP(o.discount);
+    } else {
+      document.getElementById('om-coupon-row').style.display = 'none';
+    }
+
+    document.getElementById('om-ship').innerHTML =
+      [o.ship_full_name, o.ship_phone, [o.ship_area, o.ship_city].filter(Boolean).join(', '), o.ship_address]
+        .filter(Boolean).join('<br>');
+
+    // ── Payment verification block (manual methods only) ──
+    const manual = o.payment_method === 'instapay' || o.payment_method === 'vodafone_cash';
+    document.getElementById('om-pay-block').style.display = manual ? 'block' : 'none';
+    if (manual) {
+      _curOrderProof = o.payment_proof || '';
+      const thumb = document.getElementById('om-proof-thumb');
+      thumb.innerHTML = o.payment_proof
+        ? `<img src="${o.payment_proof}" alt="proof" style="width:100%;height:100%;object-fit:cover;">`
+        : '<span style="font-size:10px;color:var(--muted);">No proof</span>';
+      document.getElementById('om-pay-method').textContent = payMethodLabel(o.payment_method);
+      document.getElementById('om-pay-status-pill').innerHTML = pillHtml(o.payment_status);
+      document.getElementById('om-pay-notes').value = o.payment_notes || '';
+      const vEl = document.getElementById('om-pay-verified');
+      if (o.payment_verified_at) {
+        vEl.style.display = 'block';
+        vEl.innerHTML = `<span style="color:var(--muted);">Verified by:</span> ${o.verified_by_name || 'admin'} · ${fDate(o.payment_verified_at)}`;
+      } else { vEl.style.display = 'none'; }
+    }
+  } catch (e) { toast('Failed to load order: ' + e.message, 'error'); }
+}
+
+let _curOrderProof = '';
+function enlargeProof() {
+  if (!_curOrderProof) return;
+  document.getElementById('proof-lightbox-img').src = _curOrderProof;
+  document.getElementById('proof-lightbox').style.display = 'flex';
+}
+function closeProofLightbox() {
+  document.getElementById('proof-lightbox').style.display = 'none';
+  document.getElementById('proof-lightbox-img').src = '';
+}
+
+async function verifyPayment(action) {
+  const id = document.getElementById('m-ord-id').value;
+  const notes = document.getElementById('om-pay-notes').value;
+  const verb = action === 'approve' ? 'approve' : 'reject';
+  if (!confirm(`Are you sure you want to ${verb} this payment?`)) return;
+  try {
+    await call('PATCH', `/orders/${id}/payment`, { action, notes });
+    toast(`Payment ${action === 'approve' ? 'approved' : 'rejected'}`);
+    await openOrderModal(id);          // refresh modal state
+    if (_curPanel === 'orders') loadOrders();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function saveOrderStatus() {
+  const id = document.getElementById('m-ord-id').value;
+  try {
+    await call('PATCH', `/orders/${id}/status`, {
+      orderStatus: document.getElementById('om-status').value,
+      paymentStatus: document.getElementById('om-pay').value,
+      adminNotes: document.getElementById('om-notes').value
+    });
+    toast('Order updated');
+    closeModal('m-order');
+    if (_curPanel === 'orders') loadOrders();
+    if (_curPanel === 'dashboard') loadDashboard();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION N — CUSTOMERS
+───────────────────────────────────────────────────────────── */
+async function loadCustomers() {
+  document.getElementById('cust-tb').innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allCustomers = await call('GET', '/admin/users');
+    document.getElementById('cust-count').textContent = `${_allCustomers.length} customer${_allCustomers.length !== 1 ? 's' : ''}`;
+    filterCustomers();
+  } catch (e) { toast('Failed to load customers: ' + e.message, 'error'); }
+}
+
+function filterCustomers() {
+  const q = (document.getElementById('cust-search').value || '').toLowerCase();
+  const list = q ? _allCustomers.filter(u =>
+    u.name.toLowerCase().includes(q) || (u.email||'').toLowerCase().includes(q)
+  ) : _allCustomers;
+  document.getElementById('cust-tb').innerHTML = list.length
+    ? list.map((u, idx) => {
+        const isSelf = _user.id && String(u.id) === String(_user.id);
+        return `<tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <div class="av-circle" style="background:${avColor(idx)}">${initials(u.name)}</div>
+              <span style="font-weight:500;overflow:hidden;text-overflow:ellipsis;">${u.name}</span>
+            </div>
+          </td>
+          <td style="color:var(--muted);" title="${u.email}">${u.email}</td>
+          <td>${u.phone || '—'}</td>
+          <td>${u.order_count ?? 0}</td>
+          <td>${fMon(u.created_at)}</td>
+          <td>${isSelf
+            ? '<span style="font-size:9px;color:var(--muted);">You</span>'
+            : `<button class="tb tb-red" onclick="deleteCustomer(${u.id},'${u.name.replace(/'/g,"\\'")}')">Del</button>`
+          }</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-users"></i><p>No customers yet</p></div></td></tr>';
+}
+
+async function deleteCustomer(id, name) {
+  if (String(id) === String(_user.id)) { toast('You cannot delete your own account', 'error'); return; }
+  if (!confirm(`Delete "${name}"? All their data will be removed.`)) return;
+  try { await call('DELETE', `/admin/users/${id}`); toast('Customer deleted'); loadCustomers(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION O — COUPONS
+───────────────────────────────────────────────────────────── */
+async function loadCoupons() {
+  document.getElementById('coup-tb').innerHTML = '<tr><td colspan="8" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allCoupons = await call('GET', '/coupons');
+    document.getElementById('coup-tb').innerHTML = _allCoupons.length
+      ? _allCoupons.map(c => {
+          const val = c.discount_type === 'percentage' ? `${c.discount_value}%` : fEGP(c.discount_value);
+          const exp = c.expires_at ? fDate(c.expires_at) : '—';
+          const typePill = c.discount_type === 'percentage'
+            ? '<span class="adm-pill ap-processing">%</span>'
+            : '<span class="adm-pill ap-shipped">EGP</span>';
+          return `<tr>
+            <td style="font-family:monospace;font-weight:500;">${c.code}</td>
+            <td>${typePill}</td>
+            <td>${val}</td>
+            <td>${c.min_order_value > 0 ? fEGP(c.min_order_value) : '—'}</td>
+            <td>${c.usage_count} / ${c.usage_limit || '∞'}</td>
+            <td>${exp}</td>
+            <td><div class="tog ${c.active?'on':''}" onclick="toggleCouponActive(${c.id},${!!c.active})"></div></td>
+            <td>
+              <button class="tb tb-grn" onclick="openCouponModal(${c.id})">Edit</button>
+              <button class="tb tb-red" onclick="deleteCoupon(${c.id},'${c.code}')">Del</button>
+            </td>
+          </tr>`;
+        }).join('')
+      : '<tr><td colspan="8"><div class="empty-st"><i class="ti ti-tag-off"></i><p>No coupons yet</p><button class="btn-green" onclick="openCouponModal()"><i class="ti ti-plus"></i> Create First Coupon</button></div></td></tr>';
+  } catch (e) { toast('Failed to load coupons: ' + e.message, 'error'); }
+}
+
+function openCouponModal(id) {
+  document.getElementById('m-coup-id').value = id || '';
+  document.getElementById('m-coup-title').textContent = id ? 'Edit Coupon' : 'Create Coupon';
+  if (id) {
+    const c = _allCoupons.find(x => x.id == id) || {};
+    document.getElementById('cp-code').value  = c.code || '';
+    document.getElementById('cp-type').value  = c.discount_type || 'percentage';
+    document.getElementById('cp-val').value   = c.discount_value || '';
+    document.getElementById('cp-min').value   = c.min_order_value || 0;
+    document.getElementById('cp-limit').value = c.usage_limit || '';
+    document.getElementById('cp-exp').value   = c.expires_at ? new Date(c.expires_at).toISOString().slice(0,16) : '';
+  } else {
+    ['cp-code','cp-val','cp-limit','cp-exp'].forEach(x => document.getElementById(x).value = '');
+    document.getElementById('cp-min').value  = '0';
+    document.getElementById('cp-type').value = 'percentage';
+  }
+  openModal('m-coupon');
+}
+
+async function saveCoupon() {
+  const id = document.getElementById('m-coup-id').value;
+  const code = document.getElementById('cp-code').value.trim().toUpperCase();
+  const val  = document.getElementById('cp-val').value;
+  if (!code || !val) { toast('Code and value are required', 'error'); return; }
+  const data = {
+    code,
+    discountType: document.getElementById('cp-type').value,
+    discountValue: Number(val),
+    minOrderValue: Number(document.getElementById('cp-min').value) || 0,
+    usageLimit: document.getElementById('cp-limit').value ? Number(document.getElementById('cp-limit').value) : null,
+    expiresAt: document.getElementById('cp-exp').value || null
+  };
+  try {
+    if (id) await call('PUT', `/coupons/${id}`, data);
+    else    await call('POST', '/coupons', data);
+    toast(id ? 'Coupon updated' : 'Coupon created');
+    closeModal('m-coupon');
+    loadCoupons();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function toggleCouponActive(id, current) {
+  try { await call('PUT', `/coupons/${id}`, { active: !current }); loadCoupons(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteCoupon(id, code) {
+  if (!confirm(`Delete coupon "${code}"?`)) return;
+  try { await call('DELETE', `/coupons/${id}`); toast('Coupon deleted'); loadCoupons(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION P — SETTINGS
+───────────────────────────────────────────────────────────── */
+async function loadSettings() {
+  document.getElementById('st-email').value = _user.email || '';
+  try {
+    const s = await call('GET', '/settings/admin/all');
+    document.getElementById('st-name').value  = s.store_name || 'NOOS';
+    document.getElementById('st-ship').value  = s.free_shipping || 500;
+    document.getElementById('st-code').value  = s.newsletter_code || 'NOOS10';
+    document.getElementById('st-ip-name').value = s.instapay_name || '';
+    document.getElementById('st-ip-id').value   = s.instapay_identifier || '';
+    document.getElementById('st-vf-name').value = s.vodafone_name || '';
+    document.getElementById('st-vf-id').value   = s.vodafone_identifier || '';
+    document.getElementById('st-pay-note').value = s.payment_instructions || '';
+  } catch (e) { toast('Failed to load settings: ' + e.message, 'error'); }
+}
+
+async function saveSettings() {
+  try {
+    await call('PUT', '/settings', {
+      store_name: document.getElementById('st-name').value,
+      free_shipping: document.getElementById('st-ship').value,
+      newsletter_code: document.getElementById('st-code').value
+    });
+    toast('Settings saved');
+  } catch (e) { toast('Failed to save: ' + e.message, 'error'); }
+}
+
+async function savePaymentSettings() {
+  try {
+    await call('PUT', '/settings', {
+      instapay_name: document.getElementById('st-ip-name').value,
+      instapay_identifier: document.getElementById('st-ip-id').value,
+      vodafone_name: document.getElementById('st-vf-name').value,
+      vodafone_identifier: document.getElementById('st-vf-id').value,
+      payment_instructions: document.getElementById('st-pay-note').value
+    });
+    toast('Payment settings saved');
+  } catch (e) { toast('Failed to save: ' + e.message, 'error'); }
+}
+
+function confirmDanger(msg, action) {
+  if (confirm(msg)) action();
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION Q — LOGOUT
+───────────────────────────────────────────────────────────── */
+function doLogout() {
+  Auth.clear();
+  window.location.href = '../index.html';
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION — HERO CMS
+───────────────────────────────────────────────────────────── */
+let _heroSlides = [];
+function escH(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function heroSrc(u){ if(!u) return ''; if(/^https?:|^\//.test(u)) return u; return '../' + u; }
+
+async function loadHero() {
+  const wrap = document.getElementById('hero-list');
+  wrap.innerHTML = '<div class="ld-cell">Loading…</div>';
+  try {
+    _heroSlides = await call('GET', '/hero/admin/all');
+    if (!_heroSlides.length) {
+      wrap.innerHTML = '<div class="empty-st"><i class="ti ti-photo"></i><p>No hero slides yet</p><button class="btn-green" onclick="openHeroModal()"><i class="ti ti-plus"></i> Add First Slide</button></div>';
+      return;
+    }
+    wrap.innerHTML = _heroSlides.map((s, i) => heroRow(s, i)).join('');
+  } catch (e) { toast('Failed to load hero slides: ' + e.message, 'error'); }
+}
+
+function heroRow(s, i) {
+  const isVid = s.media_type === 'video' && (s.desktop_video || s.mobile_video);
+  const img = s.desktop_image || s.mobile_image;
+  const thumb = isVid
+    ? `<i class="ti ti-video" style="font-size:22px;color:var(--sage);"></i>`
+    : (img ? `<img src="${heroSrc(img)}" style="width:100%;height:100%;object-fit:cover;">`
+           : `<span style="font-family:var(--f-lux);color:var(--ink-50);">NOOS</span>`);
+  return `<div class="adm-card" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:14px;padding:12px 14px;">
+      <div style="width:88px;height:56px;background:var(--paper2);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;">${thumb}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--grn2);">${escH(s.label)||'—'}</div>
+        <div style="font-family:var(--f-lux);font-size:20px;line-height:1.1;color:var(--ink);">${escH(s.title)||'Untitled'}</div>
+        <div style="font-size:10px;color:var(--ink-50);text-transform:uppercase;letter-spacing:.08em;">${s.media_type} · order ${s.sort_order}</div>
+      </div>
+      <div class="tog ${s.enabled?'on':''}" title="Enabled" onclick="toggleHeroEnabled(${s.id},${!!s.enabled})"></div>
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <button class="tb tb-ink" style="padding:2px 8px;" onclick="moveHero(${i},-1)" ${i===0?'disabled':''}>↑</button>
+        <button class="tb tb-ink" style="padding:2px 8px;margin-right:0;" onclick="moveHero(${i},1)" ${i===_heroSlides.length-1?'disabled':''}>↓</button>
+      </div>
+      <button class="tb tb-grn" onclick="openHeroModal(${s.id})">Edit</button>
+      <button class="tb tb-red" onclick="deleteHero(${s.id})">Del</button>
+    </div>
+  </div>`;
+}
+
+function _setHeroMedia(field, url) {
+  document.getElementById('mh-' + field).value = url || '';
+  document.getElementById('mh-' + field + '-st').textContent = url ? 'Uploaded ✓' : 'None';
+}
+
+function openHeroModal(id) {
+  document.getElementById('m-hero-id').value = id || '';
+  document.getElementById('m-hero-title').textContent = id ? 'Edit Hero Slide' : 'Add Hero Slide';
+  const s = id ? (_heroSlides.find(x => x.id == id) || {}) : {};
+  document.getElementById('mh-media-type').value = s.media_type || 'image';
+  _setHeroMedia('desktop-image', s.desktop_image);
+  _setHeroMedia('desktop-video', s.desktop_video);
+  _setHeroMedia('mobile-image', s.mobile_image);
+  _setHeroMedia('mobile-video', s.mobile_video);
+  document.getElementById('mh-label').value = s.label || '';
+  document.getElementById('mh-title').value = s.title || '';
+  document.getElementById('mh-subtitle').value = s.subtitle || '';
+  document.getElementById('mh-description').value = s.description || '';
+  document.getElementById('mh-primary-label').value = s.primary_label || '';
+  document.getElementById('mh-primary-href').value = s.primary_href || '';
+  document.getElementById('mh-secondary-label').value = s.secondary_label || '';
+  document.getElementById('mh-secondary-href').value = s.secondary_href || '';
+  document.getElementById('mh-sort').value = s.sort_order != null ? s.sort_order : (_heroSlides.length + 1);
+  document.getElementById('mh-enabled').value = (s.enabled == null ? 1 : (s.enabled ? 1 : 0));
+  openModal('m-hero');
+}
+
+async function uploadHeroField(input, hiddenId, statusId) {
+  if (!input.files || !input.files[0]) return;
+  document.getElementById(statusId).textContent = 'Uploading…';
+  try {
+    const fd = new FormData();
+    fd.append('file', input.files[0]);
+    const d = await call('POST', '/hero/upload', fd, true);
+    document.getElementById(hiddenId).value = d.url;
+    document.getElementById(statusId).textContent = 'Uploaded ✓';
+  } catch (e) { document.getElementById(statusId).textContent = 'Failed'; toast(e.message, 'error'); }
+}
+
+async function saveHero() {
+  const id = document.getElementById('m-hero-id').value;
+  const v = x => document.getElementById('mh-' + x).value;
+  const data = {
+    media_type: v('media-type'),
+    desktop_image: v('desktop-image'), desktop_video: v('desktop-video'),
+    mobile_image: v('mobile-image'), mobile_video: v('mobile-video'),
+    label: v('label'), title: v('title'), subtitle: v('subtitle'), description: v('description'),
+    primary_label: v('primary-label'), primary_href: v('primary-href'),
+    secondary_label: v('secondary-label'), secondary_href: v('secondary-href'),
+    sort_order: Number(v('sort')) || 0, enabled: Number(v('enabled'))
+  };
+  try {
+    if (id) await call('PUT', '/hero/' + id, data);
+    else    await call('POST', '/hero', data);
+    toast(id ? 'Slide updated' : 'Slide created');
+    closeModal('m-hero');
+    loadHero();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function toggleHeroEnabled(id, current) {
+  try { await call('PUT', '/hero/' + id, { enabled: current ? 0 : 1 }); loadHero(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+async function deleteHero(id) {
+  if (!confirm('Delete this hero slide?')) return;
+  try { await call('DELETE', '/hero/' + id); toast('Slide deleted'); loadHero(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+async function moveHero(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= _heroSlides.length) return;
+  const arr = _heroSlides.slice();
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  try { await call('POST', '/hero/reorder', { order: arr.map(s => s.id) }); loadHero(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION — HOMEPAGE (featured collections + home product sections)
+───────────────────────────────────────────────────────────── */
+let _homeCats = [], _homeProducts = [];
+
+function loadHomepage() { loadHomeCats(); loadHomeProducts(); }
+
+async function loadHomeCats() {
+  const tb = document.getElementById('home-cats-tb');
+  tb.innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    _homeCats = await call('GET', '/categories/admin/all');
+    tb.innerHTML = _homeCats.map(c => `
+      <tr data-id="${c.id}">
+        <td>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div style="width:40px;height:30px;background:var(--paper2);overflow:hidden;flex-shrink:0;">
+              ${c.image_url ? `<img id="hc-thumb-${c.id}" src="${c.image_url}" style="width:100%;height:100%;object-fit:cover;">` : `<span id="hc-thumb-${c.id}"></span>`}
+            </div>
+            <button class="tb tb-grn" style="padding:3px 7px;" onclick="document.getElementById('hc-file-${c.id}').click()">Photo</button>
+            <input type="file" id="hc-file-${c.id}" accept="image/*" style="display:none;" onchange="uploadHomeCatImg(${c.id},this)">
+          </div>
+        </td>
+        <td style="font-weight:500;">${escH(c.name)}</td>
+        <td><input class="form-input" id="hc-sub-${c.id}" value="${escH(c.subtitle)}" placeholder="e.g. Everyday Staples" style="padding:6px 9px;font-size:11px;"></td>
+        <td><div class="tog ${c.featured_home?'on':''}" id="hc-home-${c.id}" onclick="this.classList.toggle('on')"></div></td>
+        <td><div class="tog ${c.show_in_collections?'on':''}" id="hc-col-${c.id}" onclick="this.classList.toggle('on')"></div></td>
+        <td><button class="tb tb-grn" onclick="saveHomeCat(${c.id})">Save</button></td>
+      </tr>`).join('') || '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-category"></i><p>No categories</p></div></td></tr>';
+  } catch (e) { toast('Failed to load collections: ' + e.message, 'error'); }
+}
+
+async function uploadHomeCatImg(id, input) {
+  if (!input.files || !input.files[0]) return;
+  try {
+    const fd = new FormData();
+    fd.append('image', input.files[0]);
+    const d = await call('POST', '/categories/upload', fd, true);
+    await call('PUT', '/categories/' + id, { imageUrl: d.url });
+    toast('Photo updated');
+    const t = document.getElementById('hc-thumb-' + id);
+    if (t && t.tagName === 'IMG') t.src = d.url;
+    else loadHomeCats();
+    const c = _homeCats.find(x => x.id == id); if (c) c.image_url = d.url;
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function saveHomeCat(id) {
+  const data = {
+    subtitle: document.getElementById('hc-sub-' + id).value,
+    featuredHome: document.getElementById('hc-home-' + id).classList.contains('on'),
+    showInCollections: document.getElementById('hc-col-' + id).classList.contains('on')
+  };
+  try { await call('PUT', '/categories/' + id, data); toast('Collection saved'); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+const HP_KEY = { new: 'home_new', best: 'home_bestseller' };
+
+async function loadHomeProducts() {
+  ['new', 'best'].forEach(w => { const el = document.getElementById('hp-' + w + '-list'); if (el) el.innerHTML = '<div class="ld-cell">Loading…</div>'; });
+  try {
+    _homeProducts = (await call('GET', '/products/admin/all')).filter(p => p.active);
+    renderHomeSection('new'); renderHomeSection('best');
+  } catch (e) { toast('Failed to load products: ' + e.message, 'error'); }
+}
+
+function updateHomeCounts() {
+  const nEl = document.getElementById('home-new-count');
+  const bEl = document.getElementById('home-best-count');
+  if (nEl) nEl.textContent = _homeProducts.filter(p => p.home_new).length;
+  if (bEl) bEl.textContent = _homeProducts.filter(p => p.home_bestseller).length;
+}
+
+// Render the curated list of products currently in a section.
+function renderHomeSection(which) {
+  const key = HP_KEY[which];
+  const list = document.getElementById('hp-' + which + '-list');
+  if (!list) return;
+  const chosen = _homeProducts.filter(p => p[key]);
+  list.innerHTML = chosen.length ? chosen.map((p, i) => `
+    <div class="hp-row">
+      <div class="hp-row__thumb">${p.image_url ? `<img src="${p.image_url}">` : ''}</div>
+      <span class="hp-row__name">${escH(p.name)}</span>
+      <span class="hp-row__order">${i < 8 ? '#' + (i + 1) : 'hidden'}</span>
+      <button class="hp-row__rm" title="Remove" onclick="hpRemove('${which}',${p.id})"><i class="ti ti-x"></i></button>
+    </div>`).join('')
+    : `<div class="hp-empty">No products yet — search above to add some.</div>`;
+  updateHomeCounts();
+}
+
+// Suggestion dropdown of products NOT already in this section.
+function hpSuggest(which) {
+  const key = HP_KEY[which];
+  const q = (document.getElementById('hp-' + which + '-search').value || '').trim().toLowerCase();
+  const box = document.getElementById('hp-' + which + '-suggest');
+  let pool = _homeProducts.filter(p => !p[key]);
+  if (q) pool = pool.filter(p => p.name.toLowerCase().includes(q) || (p.sku || '').toLowerCase().includes(q) || (p.category_name || '').toLowerCase().includes(q));
+  pool = pool.slice(0, 8);
+  box.innerHTML = pool.length ? pool.map(p => `
+    <div class="hp-sug-item" onclick="hpAdd('${which}',${p.id})">
+      <div class="hp-sug-item__thumb">${p.image_url ? `<img src="${p.image_url}">` : ''}</div>
+      <span class="hp-sug-item__name">${escH(p.name)}</span>
+      <span class="hp-sug-item__cat">${escH(p.category_name) || ''}</span>
+    </div>`).join('')
+    : `<div class="hp-sug-empty">${q ? 'No matching products' : 'All products already added'}</div>`;
+  box.classList.add('open');
+}
+
+function hpAdd(which, id) {
+  setHomeFlag(id, which, true);
+  const s = document.getElementById('hp-' + which + '-search'); s.value = '';
+  document.getElementById('hp-' + which + '-suggest').classList.remove('open');
+}
+
+function hpRemove(which, id) { setHomeFlag(id, which, false); }
+
+// Persist a flag change (sends BOTH flags so the other section is preserved).
+function setHomeFlag(id, which, value) {
+  const p = _homeProducts.find(x => x.id == id);
+  if (!p) return;
+  p[HP_KEY[which]] = value ? 1 : 0;
+  renderHomeSection(which);
+  call('PATCH', '/products/' + id + '/home-flags', { homeNew: !!p.home_new, homeBestseller: !!p.home_bestseller })
+    .then(() => toast(which === 'new' ? 'New Arrivals updated' : 'Best Sellers updated'))
+    .catch(e => { toast(e.message, 'error'); loadHomeProducts(); });
+}
+
+// Close suggestion dropdowns when clicking outside.
+document.addEventListener('click', e => {
+  if (!e.target.closest('.hp-add')) document.querySelectorAll('.hp-suggest.open').forEach(s => s.classList.remove('open'));
+});
+
+/* ── Init ─────────────────────────────────────────────────── */
+loadDashboard();
+</script>
+</body>
+</html>

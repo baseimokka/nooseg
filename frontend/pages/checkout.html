@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <style>
+    body { background: var(--paper); color: var(--ink); }
+    .co-nav { height:62px;background:var(--noir);border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;padding:0 28px; }
+    .co-nav__logo { font-family:var(--f-lux);font-size:26px;letter-spacing:0.14em;text-indent:.14em;color:var(--ivory);text-decoration:none; }
+    .co-nav__secure { display:flex;align-items:center;gap:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ivory-60);font-family:var(--fb); }
+    .co-progress { background:var(--warmdark);padding:16px 28px;display:flex;align-items:center;gap:0; }
+    .co-step { display:flex;align-items:center;gap:10px; }
+    .co-step__dot { width:24px;height:24px;border-radius:50%;border:1px solid var(--ivory-20);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:var(--ivory-40);font-family:var(--fb); }
+    .co-step__dot.active { background:var(--sage);border-color:var(--sage);color:var(--noir); }
+    .co-step__label { font-size:10px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--ivory-40);font-family:var(--fb); }
+    .co-step__label.active { color:var(--ivory); }
+    .co-conn { width:48px;height:1px;background:var(--ivory-20);margin:0 14px; }
+    .co-layout { display:grid;grid-template-columns:1fr 340px;min-height:calc(100vh - 124px); }
+    .co-form { padding:clamp(32px,5vw,72px) clamp(24px,4vw,64px);background:var(--paper); }
+    .co-form__eyebrow { font-family:var(--fb);font-size:11px;font-weight:500;letter-spacing:.34em;text-transform:uppercase;color:var(--grn2);margin-bottom:12px;display:block; }
+    .co-form__title { font-family:var(--f-lux);font-weight:400;font-size:clamp(34px,4vw,52px);letter-spacing:0.02em;line-height:.96;margin-bottom:32px;color:var(--ink); }
+    .co-form .form-input, .co-form .form-select { background:var(--card);border-color:var(--hair-d); }
+    .form-row { display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px; }
+    .form-row-1 { margin-bottom:16px; }
+    .cod-banner { background:var(--card);border:1px solid var(--hair-d);border-left:2px solid var(--grn);padding:16px 18px;display:flex;align-items:center;gap:14px;margin:24px 0; }
+    .cod-banner i { font-size:20px;color:var(--grn2); }
+    .cod-label { font-size:13px;font-weight:500;color:var(--ink); }
+    .cod-sub { font-size:11px;color:var(--ink-50); }
+    /* Payment method selector */
+    .pay-section { margin:24px 0; }
+    .pay-section__title { display:block;font-family:var(--fb);font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-50);margin-bottom:12px; }
+    .pay-methods { display:flex;flex-direction:column;gap:10px; }
+    .pay-method { display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--hair-d);cursor:pointer;transition:border-color .15s ease,background .15s ease; }
+    .pay-method:hover { border-color:var(--grn); }
+    .pay-method.active { border-color:var(--grn2);border-width:1px;box-shadow:inset 0 0 0 1px var(--grn2);background:var(--card); }
+    .pay-method input { position:absolute;opacity:0;pointer-events:none; }
+    .pay-method__icon { width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--paper2);flex-shrink:0; }
+    .pay-method__icon i { font-size:20px;color:var(--grn2); }
+    .pay-method__logo { width:40px;height:40px;object-fit:contain;flex-shrink:0;background:#fff;padding:4px;border:1px solid var(--hair-d); }
+    .pay-method__body { flex:1;min-width:0;display:flex;flex-direction:column;gap:2px; }
+    .pay-method__name { font-size:13px;font-weight:500;color:var(--ink); }
+    .pay-method__sub { font-size:11px;color:var(--ink-50); }
+    .pay-method__check { width:20px;height:20px;border-radius:50%;border:1px solid var(--hair-d);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+    .pay-method__check i { font-size:12px;color:#fff;opacity:0; }
+    .pay-method.active .pay-method__check { background:var(--grn2);border-color:var(--grn2); }
+    .pay-method.active .pay-method__check i { opacity:1; }
+    /* Manual payment instructions */
+    .pay-instructions { margin-top:16px;background:var(--paper2);border:1px solid var(--hair-d);border-left:2px solid var(--grn);padding:16px 18px; }
+    .pay-inst-row { display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--hair-d); }
+    .pay-inst-row:last-of-type { border-bottom:none; }
+    .pay-inst-label { font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-50);min-width:110px; }
+    .pay-inst-val { font-size:14px;font-weight:500;color:var(--ink);flex:1;word-break:break-word; }
+    .pay-copy { background:none;border:1px solid var(--hair-d);padding:4px 8px;cursor:pointer;color:var(--ink-70);font-size:12px;display:inline-flex;align-items:center; }
+    .pay-copy:hover { border-color:var(--grn);color:var(--grn2); }
+    .pay-inst-note { font-size:11px;color:var(--ink-70);line-height:1.6;margin-top:10px; }
+    /* Proof dropzone */
+    .proof-drop { margin-top:8px;border:1.5px dashed var(--hair-d);background:var(--card);cursor:pointer;transition:border-color .15s ease,background .15s ease;position:relative; }
+    .proof-drop.dragover { border-color:var(--grn);background:var(--paper2); }
+    .proof-drop__empty { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:28px 16px;text-align:center; }
+    .proof-drop__empty i { font-size:30px;color:var(--grn2); }
+    .proof-drop__empty span { font-size:12px;color:var(--ink-70); }
+    .proof-drop__empty strong { color:var(--grn2);font-weight:500; }
+    .proof-drop__empty small { font-size:10px;color:var(--ink-50); }
+    .proof-drop__preview { position:relative;padding:12px;display:flex;justify-content:center; }
+    .proof-drop__preview img { max-width:100%;max-height:240px;object-fit:contain;border:1px solid var(--hair-d); }
+    .proof-remove { position:absolute;top:8px;right:8px;width:26px;height:26px;background:var(--red);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center; }
+    .proof-remove i { font-size:13px; }
+    /* Review step */
+    .rev-block { border:1px solid var(--hair-d); margin-bottom:14px; }
+    .rev-block__hd { display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--hair-d);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-50);background:var(--card); }
+    .rev-edit { background:none;border:none;font-family:var(--fb);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--grn2);cursor:pointer;display:inline-flex;align-items:center;gap:4px; }
+    .rev-body { padding:14px;font-size:13px;color:var(--ink);line-height:1.75; }
+    .rev-item { display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--hair-d); }
+    .rev-item:last-child { border-bottom:none;padding-bottom:0; }
+    .rev-item:first-child { padding-top:0; }
+    .rev-item__img { width:46px;height:58px;background:var(--paper2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center; }
+    .rev-item__img img { width:100%;height:100%;object-fit:cover; }
+    .rev-item__info { flex:1;min-width:0; }
+    .rev-item__name { font-size:12px;font-weight:500;color:var(--ink); }
+    .rev-item__var { font-size:10px;color:var(--ink-50);margin-top:3px; }
+    .rev-item__price { font-size:12px;font-weight:500;align-self:center;color:var(--ink); }
+
+    .co-summary { background:var(--paper2);padding:clamp(28px,3vw,40px) clamp(22px,2vw,28px);border-left:1px solid var(--hair-d); }
+    .co-summary__title { font-size:11px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-50);margin-bottom:18px; }
+    .co-item { display:flex;gap:12px;margin-bottom:14px; }
+    .co-item__img { width:52px;height:66px;background:var(--card);border:1px solid var(--hair-d);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden; }
+    .co-item__img img { width:100%;height:100%;object-fit:cover; }
+    .co-item__info { flex:1;min-width:0; }
+    .co-item__name { font-size:12px;font-weight:500;margin-bottom:3px;color:var(--ink); }
+    .co-item__var { font-size:10px;color:var(--ink-50); }
+    .co-item__price { font-size:12px;font-weight:500;text-align:right;flex-shrink:0;color:var(--ink); }
+    .co-coupon { display:flex;margin:18px 0;gap:0; }
+    .co-coupon input { flex:1;padding:11px 12px;border:1px solid var(--hair-d);font-size:11px;letter-spacing:.08em;font-family:var(--fb);outline:none;background:var(--card);color:var(--ink); }
+    .co-coupon input:focus { border-color:var(--grn); }
+    .co-coupon button { padding:11px 16px;background:var(--ink);color:var(--paper);border:none;font-size:11px;font-family:var(--fb);font-weight:500;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;flex-shrink:0;transition:background .2s ease; }
+    .co-coupon button:hover { background:var(--grn);color:#fff; }
+    .co-total-row { display:flex;justify-content:space-between;font-size:11px;color:var(--ink-50);margin-bottom:6px; }
+    .co-total-row.main { font-size:15px;font-weight:500;color:var(--ink);border-top:1px solid var(--hair-d);padding-top:10px;margin-top:8px; }
+    /* Success screen */
+    .success-screen { display:none;position:fixed;inset:0;background:var(--paper);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center; }
+    .success-screen.active { display:flex; }
+    .success-icon { width:72px;height:72px;border-radius:50%;background:var(--grn);display:flex;align-items:center;justify-content:center; }
+    .success-icon i { font-size:34px;color:#fff; }
+    .success-title { font-family:var(--f-lux);font-weight:400;font-size:clamp(40px,6vw,72px);letter-spacing:0.02em;color:var(--ink); }
+    .success-num { font-size:12px;color:var(--ink-50); }
+    .success-num span { font-weight:500;color:var(--ink);font-family:monospace; }
+    /* Responsive */
+    @media (max-width: 768px) {
+      .co-layout { grid-template-columns: 1fr; min-height: unset; }
+      .co-summary { border-left: none; border-top: 1px solid var(--hair-d); }
+      .co-progress { overflow-x: auto; }
+    }
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+      .co-nav { padding: 0 16px; }
+      .success-title { font-size: 34px; }
+    }
+  </style>
+</head>
+<body>
+  <script src="../js/preloader.js"></script>
+  <!-- Checkout Nav -->
+  <nav class="co-nav">
+    <a href="../index.html" class="co-nav__logo">NOOS</a>
+    <div class="co-nav__secure"><i class="ti ti-lock" style="font-size:14px;"></i> Secure Checkout</div>
+  </nav>
+
+  <!-- Progress -->
+  <div class="co-progress">
+    <div class="co-step">
+      <div class="co-step__dot active" id="step1-dot">1</div>
+      <span class="co-step__label active" id="step1-label">Shipping</span>
+    </div>
+    <div class="co-conn"></div>
+    <div class="co-step">
+      <div class="co-step__dot" id="step2-dot">2</div>
+      <span class="co-step__label" id="step2-label">Review</span>
+    </div>
+    <div class="co-conn"></div>
+    <div class="co-step">
+      <div class="co-step__dot" id="step3-dot">3</div>
+      <span class="co-step__label" id="step3-label">Confirm</span>
+    </div>
+  </div>
+
+  <div class="co-layout">
+    <!-- Left: Shipping Form / Review -->
+    <div class="co-form">
+      <!-- View 1 · Shipping -->
+      <div id="view-shipping">
+      <span class="co-form__eyebrow">Step 1 · Delivery</span>
+      <h2 class="co-form__title">Shipping Details</h2>
+      <form id="shipping-form" onsubmit="continueToReview(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input class="form-input" id="ship-name" type="text" required placeholder="Ahmed Hassan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" id="ship-phone" type="tel" required placeholder="01xxxxxxxxx">
+          </div>
+        </div>
+        <div class="form-row-1">
+          <div class="form-group">
+            <label class="form-label">City / Governorate</label>
+            <select class="form-select" id="ship-city" required>
+              <option value="">Select city...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-1">
+          <div class="form-group">
+            <label class="form-label">Area / District</label>
+            <input class="form-input" id="ship-area" type="text" placeholder="Heliopolis">
+          </div>
+        </div>
+        <div class="form-row-1">
+          <div class="form-group">
+            <label class="form-label">Street Address</label>
+            <input class="form-input" id="ship-address" type="text" required placeholder="12 El Nozha St., Apt 3">
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="pay-section">
+          <span class="pay-section__title">Payment Method</span>
+          <div class="pay-methods" id="pay-methods">
+            <label class="pay-method active">
+              <input type="radio" name="payment" value="COD" checked onchange="onPaymentChange()">
+              <span class="pay-method__icon"><i class="ti ti-cash"></i></span>
+              <span class="pay-method__body">
+                <span class="pay-method__name">Cash on Delivery</span>
+                <span class="pay-method__sub">Pay when your order arrives at your door</span>
+              </span>
+              <span class="pay-method__check"><i class="ti ti-check"></i></span>
+            </label>
+            <label class="pay-method">
+              <input type="radio" name="payment" value="instapay" onchange="onPaymentChange()">
+              <img class="pay-method__logo" src="../images/payments/instapay.png" alt="InstaPay">
+              <span class="pay-method__body">
+                <span class="pay-method__name">InstaPay</span>
+                <span class="pay-method__sub">Transfer the total &amp; upload proof</span>
+              </span>
+              <span class="pay-method__check"><i class="ti ti-check"></i></span>
+            </label>
+            <label class="pay-method">
+              <input type="radio" name="payment" value="vodafone_cash" onchange="onPaymentChange()">
+              <img class="pay-method__logo" src="../images/payments/vodafone-cash.jpg" alt="Vodafone Cash">
+              <span class="pay-method__body">
+                <span class="pay-method__name">Vodafone Cash</span>
+                <span class="pay-method__sub">Transfer the total &amp; upload proof</span>
+              </span>
+              <span class="pay-method__check"><i class="ti ti-check"></i></span>
+            </label>
+          </div>
+
+          <!-- Manual payment instructions + proof (hidden for COD) -->
+          <div id="manual-pay" style="display:none;">
+            <div class="pay-instructions">
+              <div class="pay-inst-row">
+                <span class="pay-inst-label">Account Name</span>
+                <span class="pay-inst-val" id="pi-name">—</span>
+              </div>
+              <div class="pay-inst-row">
+                <span class="pay-inst-label" id="pi-id-label">Identifier</span>
+                <span class="pay-inst-val" id="pi-id">—</span>
+                <button type="button" class="pay-copy" onclick="copyIdentifier()" title="Copy"><i class="ti ti-copy"></i></button>
+              </div>
+              <div class="pay-inst-row">
+                <span class="pay-inst-label">Amount to Send</span>
+                <span class="pay-inst-val" id="pi-amount" style="color:var(--grn2);">—</span>
+              </div>
+              <p class="pay-inst-note" id="pi-note"></p>
+            </div>
+
+            <label class="form-label" style="margin-top:14px;">Upload Payment Proof <span style="color:var(--red)">*</span></label>
+            <div class="proof-drop" id="proof-drop" onclick="document.getElementById('proof-input').click()">
+              <input type="file" id="proof-input" accept="image/jpeg,image/png,image/webp" hidden onchange="onProofSelected(event)">
+              <div class="proof-drop__empty" id="proof-empty">
+                <i class="ti ti-cloud-upload"></i>
+                <span>Drag &amp; drop your screenshot here, or <strong>browse</strong></span>
+                <small>JPG, PNG or WEBP · max 5MB</small>
+              </div>
+              <div class="proof-drop__preview" id="proof-preview" style="display:none;">
+                <img id="proof-img" alt="Payment proof">
+                <button type="button" class="proof-remove" onclick="removeProof(event)"><i class="ti ti-x"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" style="width:100%">Continue to Review →</button>
+      </form>
+      </div><!-- /view-shipping -->
+
+      <!-- View 2 · Review & Confirm -->
+      <div id="view-review" style="display:none;">
+        <span class="co-form__eyebrow">Step 2 · Review</span>
+        <h2 class="co-form__title">Review &amp; Confirm</h2>
+
+        <div class="rev-block">
+          <div class="rev-block__hd"><span>Delivery To</span><button class="rev-edit" onclick="backToShipping()"><i class="ti ti-pencil"></i> Edit</button></div>
+          <div id="rev-ship" class="rev-body"></div>
+        </div>
+
+        <div class="rev-block">
+          <div class="rev-block__hd"><span>Your Items</span></div>
+          <div id="rev-items" class="rev-body"></div>
+        </div>
+
+        <div class="rev-block">
+          <div class="rev-block__hd"><span>Payment</span><button class="rev-edit" onclick="backToShipping()"><i class="ti ti-pencil"></i> Edit</button></div>
+          <div id="rev-pay" class="rev-body"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:8px;">
+          <button class="btn-outline" onclick="backToShipping()" style="flex:0 0 auto;">← Back</button>
+          <button class="btn-primary" id="confirm-btn" onclick="confirmOrder()" style="flex:1;">Place Order</button>
+        </div>
+      </div><!-- /view-review -->
+    </div>
+
+    <!-- Right: Order Summary -->
+    <div class="co-summary">
+      <div class="co-summary__title">Order Summary</div>
+      <div id="co-items"></div>
+      <div class="co-coupon">
+        <input type="text" id="coupon-input" placeholder="COUPON CODE">
+        <button onclick="applyCoupon()">Apply</button>
+      </div>
+      <div id="co-totals"></div>
+    </div>
+  </div>
+
+  <!-- Success / Confirmation Screen (Step 3) -->
+  <div class="success-screen" id="success-screen">
+    <span class="co-form__eyebrow" style="color:var(--grn2);">Step 3 · Confirmed</span>
+    <div class="success-icon"><i class="ti ti-check"></i></div>
+    <h2 class="success-title">Order Confirmed</h2>
+    <p class="success-num">Order Number<br><span id="success-order-num" style="font-size:14px;"></span></p>
+    <p id="success-msg" style="font-size:13px;color:var(--ink-70);text-align:center;max-width:340px;line-height:1.7;">
+      Thank you — your order is in. We'll call to confirm shortly, and you'll pay cash on delivery when it arrives.
+    </p>
+    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center;">
+      <a href="orders.html" class="btn-primary" id="success-track">Track My Order</a>
+      <a href="../index.html" class="btn-outline">Continue Shopping</a>
+    </div>
+  </div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    let couponDiscount = 0;
+    let couponCode = '';
+    let paymentSettings = {};
+    let proofFile = null;
+
+    const PAY_LABELS = { COD: 'Cash on Delivery', instapay: 'InstaPay', vodafone_cash: 'Vodafone Cash' };
+
+    async function init() {
+      // Load cities
+      try {
+        const cities = await API.getCities();
+        const sel = document.getElementById('ship-city');
+        cities.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c; opt.textContent = c;
+          sel.appendChild(opt);
+        });
+      } catch {}
+
+      // Load payment account info / instructions
+      try { paymentSettings = await API.getPaymentSettings(); } catch {}
+      setupProofDropzone();
+
+      renderSummary();
+
+      // Prefill if logged in
+      if (Auth.isLoggedIn()) {
+        try {
+          const data = await API.me();
+          const u = data.user;
+          document.getElementById('ship-name').value = u.name || '';
+          document.getElementById('ship-phone').value = u.phone || '';
+          if (data.addresses && data.addresses.length > 0) {
+            const def = data.addresses.find(a => a.is_default) || data.addresses[0];
+            document.getElementById('ship-area').value = def.area || '';
+            document.getElementById('ship-address').value = def.address || '';
+            const cityEl = document.getElementById('ship-city');
+            for (let i = 0; i < cityEl.options.length; i++) {
+              if (cityEl.options[i].value === def.city) { cityEl.selectedIndex = i; break; }
+            }
+          }
+        } catch {}
+      }
+    }
+
+    function renderSummary() {
+      const items = Cart.getAll();
+      const subtotal = Cart.subtotal();
+      const shipping = subtotal - couponDiscount >= 500 ? 0 : 60;
+      const total = subtotal - couponDiscount + shipping;
+
+      document.getElementById('co-items').innerHTML = items.map(item => `
+        <div class="co-item">
+          <div class="co-item__img">
+            ${item.image ? `<img src="${item.image}" alt="">` : `<i class="ti ti-shirt" style="font-size:18px;color:var(--border2)"></i>`}
+          </div>
+          <div class="co-item__info">
+            <div class="co-item__name">${item.name}</div>
+            <div class="co-item__var">${item.size} / ${item.colour} × ${item.quantity}</div>
+          </div>
+          <div class="co-item__price">EGP ${(item.price * item.quantity).toFixed(0)}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('co-totals').innerHTML = `
+        <div class="co-total-row"><span>Subtotal</span><span>EGP ${subtotal.toFixed(0)}</span></div>
+        <div class="co-total-row"><span>Shipping</span><span style="color:${shipping===0?'var(--grn)':'inherit'}">${shipping===0?'Free':'EGP '+shipping}</span></div>
+        ${couponDiscount > 0 ? `<div class="co-total-row"><span>Discount</span><span style="color:var(--red)">− EGP ${couponDiscount.toFixed(0)}</span></div>` : ''}
+        <div class="co-total-row main"><span>Total</span><span>EGP ${total.toFixed(0)}</span></div>
+      `;
+
+      updatePayAmount();
+    }
+
+    function orderTotal() {
+      const subtotal = Cart.subtotal();
+      const shipping = subtotal - couponDiscount >= 500 ? 0 : 60;
+      return subtotal - couponDiscount + shipping;
+    }
+
+    // ── Payment method ──
+    function currentMethod() {
+      const el = document.querySelector('input[name="payment"]:checked');
+      return el ? el.value : 'COD';
+    }
+
+    function onPaymentChange() {
+      const method = currentMethod();
+      document.querySelectorAll('.pay-method').forEach(m =>
+        m.classList.toggle('active', m.querySelector('input').checked));
+
+      const manual = method === 'instapay' || method === 'vodafone_cash';
+      document.getElementById('manual-pay').style.display = manual ? 'block' : 'none';
+      if (manual) {
+        const name = method === 'instapay' ? paymentSettings.instapay_name : paymentSettings.vodafone_name;
+        const id   = method === 'instapay' ? paymentSettings.instapay_identifier : paymentSettings.vodafone_identifier;
+        document.getElementById('pi-name').textContent = name || '—';
+        document.getElementById('pi-id').textContent = id || '—';
+        document.getElementById('pi-id-label').textContent = method === 'instapay' ? 'InstaPay Address' : 'Vodafone Number';
+        document.getElementById('pi-note').textContent = paymentSettings.payment_instructions || '';
+        updatePayAmount();
+      }
+    }
+
+    function updatePayAmount() {
+      const el = document.getElementById('pi-amount');
+      if (el) el.textContent = 'EGP ' + orderTotal().toFixed(0);
+    }
+
+    function copyIdentifier() {
+      const txt = document.getElementById('pi-id').textContent;
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(() => Toast.success('Copied'));
+    }
+
+    // ── Proof upload (drag-drop + preview + client validation) ──
+    function validateProof(file) {
+      const okTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!okTypes.includes(file.type)) { Toast.error('Only JPG, PNG or WEBP images are allowed'); return false; }
+      if (file.size > 5 * 1024 * 1024) { Toast.error('Image must be 5MB or smaller'); return false; }
+      return true;
+    }
+
+    function setProof(file) {
+      if (!validateProof(file)) return;
+      proofFile = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        document.getElementById('proof-img').src = e.target.result;
+        document.getElementById('proof-empty').style.display = 'none';
+        document.getElementById('proof-preview').style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function onProofSelected(e) {
+      const file = e.target.files[0];
+      if (file) setProof(file);
+    }
+
+    function removeProof(e) {
+      if (e) e.stopPropagation();
+      proofFile = null;
+      document.getElementById('proof-input').value = '';
+      document.getElementById('proof-img').src = '';
+      document.getElementById('proof-empty').style.display = 'flex';
+      document.getElementById('proof-preview').style.display = 'none';
+    }
+
+    function setupProofDropzone() {
+      const dz = document.getElementById('proof-drop');
+      if (!dz) return;
+      ['dragenter', 'dragover'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation(); dz.classList.add('dragover');
+      }));
+      ['dragleave', 'drop'].forEach(ev => dz.addEventListener(ev, e => {
+        e.preventDefault(); e.stopPropagation(); dz.classList.remove('dragover');
+      }));
+      dz.addEventListener('drop', e => {
+        const file = e.dataTransfer.files && e.dataTransfer.files[0];
+        if (file) setProof(file);
+      });
+    }
+
+    async function applyCoupon() {
+      const code = document.getElementById('coupon-input').value.trim();
+      if (!code) return;
+      try {
+        const res = await API.validateCoupon(code, Cart.subtotal());
+        couponDiscount = res.discount;
+        couponCode = res.code;
+        Toast.success(`Coupon applied! −EGP ${res.discount.toFixed(0)}`);
+        renderSummary();
+      } catch (err) { Toast.error(err.message); couponDiscount = 0; couponCode = ''; renderSummary(); }
+    }
+
+    // ── Progress bar: light steps 1..n ──
+    function setStep(n) {
+      [1, 2, 3].forEach(i => {
+        document.getElementById('step' + i + '-dot').classList.toggle('active', i <= n);
+        document.getElementById('step' + i + '-label').classList.toggle('active', i <= n);
+      });
+    }
+
+    function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c])); }
+
+    // ── Step 1 → 2: validate, build review ──
+    function continueToReview(e) {
+      e.preventDefault();
+      const items = Cart.getAll();
+      if (!items.length) { Toast.error('Your cart is empty'); return; }
+
+      const city = document.getElementById('ship-city').value;
+      if (!city) { Toast.error('Please choose your city'); return; }
+
+      const method = currentMethod();
+      if ((method === 'instapay' || method === 'vodafone_cash') && !proofFile) {
+        Toast.error('Please upload your payment proof screenshot');
+        return;
+      }
+
+      // Delivery summary
+      const name = document.getElementById('ship-name').value;
+      const phone = document.getElementById('ship-phone').value;
+      const area = document.getElementById('ship-area').value;
+      const address = document.getElementById('ship-address').value;
+      document.getElementById('rev-ship').innerHTML = `
+        <strong>${esc(name)}</strong><br>
+        ${esc(phone)}<br>
+        ${esc(address)}${area ? ', ' + esc(area) : ''}<br>
+        ${esc(city)} · Egypt`;
+
+      // Items
+      document.getElementById('rev-items').innerHTML = items.map(i => `
+        <div class="rev-item">
+          <div class="rev-item__img">
+            ${i.image ? `<img src="${i.image}" alt="">` : `<i class="ti ti-shirt" style="font-size:18px;color:var(--ink-50)"></i>`}
+          </div>
+          <div class="rev-item__info">
+            <div class="rev-item__name">${esc(i.name)}</div>
+            <div class="rev-item__var">${esc(i.size)} / ${esc(i.colour)} · Qty ${i.quantity}</div>
+          </div>
+          <div class="rev-item__price">EGP ${(i.price * i.quantity).toFixed(0)}</div>
+        </div>`).join('');
+
+      // Payment review (reuses `method` from the validation above)
+      if (method === 'COD') {
+        document.getElementById('rev-pay').innerHTML =
+          `<strong>Cash on Delivery</strong><br>Pay EGP ${orderTotal().toFixed(0)} when your order arrives.`;
+      } else {
+        const name = method === 'instapay' ? paymentSettings.instapay_name : paymentSettings.vodafone_name;
+        const id   = method === 'instapay' ? paymentSettings.instapay_identifier : paymentSettings.vodafone_identifier;
+        document.getElementById('rev-pay').innerHTML = `
+          <strong>${esc(PAY_LABELS[method])}</strong> · <span style="color:var(--grn2)">Proof attached ✓</span><br>
+          Sent to ${esc(name || '')} · ${esc(id || '')}<br>
+          <span style="color:var(--ink-50);font-size:11px;">Payment will be verified before your order is processed.</span>`;
+      }
+
+      document.getElementById('view-shipping').style.display = 'none';
+      document.getElementById('view-review').style.display = 'block';
+      setStep(2);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function backToShipping() {
+      document.getElementById('view-review').style.display = 'none';
+      document.getElementById('view-shipping').style.display = 'block';
+      setStep(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Step 3: place the order ──
+    async function confirmOrder() {
+      const btn = document.getElementById('confirm-btn');
+      btn.textContent = 'Placing order…';
+      btn.disabled = true;
+      try {
+        const items = Cart.getAll();
+        const method = currentMethod();
+        const data = await API.placeOrder({
+          items: items.map(i => ({
+            productId: i.productId, variantId: i.variantId, name: i.name,
+            size: i.size, colour: i.colour, image: i.image, price: i.price, quantity: i.quantity
+          })),
+          shipping: {
+            fullName: document.getElementById('ship-name').value,
+            phone: document.getElementById('ship-phone').value,
+            city: document.getElementById('ship-city').value,
+            area: document.getElementById('ship-area').value,
+            address: document.getElementById('ship-address').value
+          },
+          couponCode: couponCode || undefined,
+          paymentMethod: method,
+          paymentProof: (method !== 'COD') ? proofFile : null
+        });
+
+        setStep(3);
+        Cart.clear();
+        document.getElementById('success-order-num').textContent = data.orderNumber;
+        if (data.paymentStatus === 'pending_verification') {
+          document.getElementById('success-msg').textContent =
+            'Thank you — your order is in. We\'ll verify your payment shortly and confirm your order. You can track its status anytime.';
+        }
+        if (!Auth.isLoggedIn()) document.getElementById('success-track').style.display = 'none';
+        document.getElementById('success-screen').classList.add('active');
+      } catch (err) {
+        Toast.error(err.message);
+        btn.textContent = 'Place Order';
+        btn.disabled = false;
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>

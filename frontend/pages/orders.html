@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Orders — NOOS</title>
+  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/nav.css">
+  <style>
+    .orders-page { padding: clamp(40px,6vw,80px) clamp(20px,5vw,48px); max-width: 880px; margin: 0 auto; }
+    .orders-eyebrow { font-family: var(--fb); font-size: 11px; font-weight: 500; letter-spacing: .34em; text-transform: uppercase; color: var(--grn2); margin-bottom: 14px; display: block; }
+    .orders-title { font-family: var(--f-lux); font-weight: 400; font-size: clamp(40px,5.5vw,82px); line-height: .92; letter-spacing: .02em; color: var(--ink); margin-bottom: clamp(28px,4vw,44px); }
+    .order-card {
+      background: var(--card);
+      border: 1px solid var(--hair-d);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+    }
+    .order-card__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .order-card__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 12px;
+      align-items: center;
+    }
+    .order-card__num { font-family: monospace; font-size: 11px; color: var(--ink); font-weight: 500; letter-spacing: .04em; }
+    .order-card__date { font-size: 10px; color: var(--ink-50); }
+    .order-card__items-count { font-size: 10px; color: var(--ink-50); }
+    .order-card__total { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .order-card__thumbs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .order-thumb {
+      width: 46px; height: 58px;
+      background: var(--paper2);
+      border: 1px solid var(--hair-d);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .order-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .order-card__summary { font-size: 11px; color: var(--ink-70); margin-bottom: 12px; line-height: 1.5; }
+    @media (max-width: 600px) {
+      .orders-page { padding: 14px; }
+      .order-card { padding: 12px 14px; }
+      .order-card__num { font-size: 10px; word-break: break-all; }
+      .orders-title { font-size: 24px; }
+    }
+    @media (max-width: 420px) {
+      .order-card__meta { gap: 3px 8px; }
+    }
+  </style>
+</head>
+<body class="lux-page">
+  <script src="../js/preloader.js"></script>
+  <div id="nav-root"></div>
+  <div id="cart-root"></div>
+  <div id="auth-root"></div>
+
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a>
+    <i class="ti ti-chevron-right"></i>
+    <span class="current">My Orders</span>
+  </div>
+
+  <div class="orders-page">
+    <span class="orders-eyebrow">Your Account</span>
+    <h1 class="orders-title">My Orders</h1>
+    <div id="orders-list">
+      <div style="text-align:center;padding:40px;color:var(--muted);">Loading...</div>
+    </div>
+  </div>
+
+  <div id="footer-root"></div>
+
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script src="../js/layout.js"></script>
+  <script>
+    document.getElementById('nav-root').innerHTML = renderNav('');
+    document.getElementById('cart-root').innerHTML = renderCartSidebar();
+    document.getElementById('auth-root').innerHTML = renderAuthModal();
+    document.getElementById('footer-root').innerHTML = renderFooter();
+    initLayout();
+
+    if (!Auth.isLoggedIn()) { window.location.href = '../index.html'; }
+
+    const STATUS_ORDER = ['pending', 'processing', 'shipped', 'delivered'];
+
+    function trackerHTML(status) {
+      const current = STATUS_ORDER.indexOf(status);
+      const steps = STATUS_ORDER.map((s, i) => {
+        let cls = '';
+        if (i < current) cls = 'done';
+        else if (i === current) cls = 'current';
+        return { s, cls };
+      });
+
+      let html = '<div class="order-tracker">';
+      steps.forEach((step, i) => {
+        html += `<div class="tracker-step">
+          <div class="tracker-dot ${step.cls}"></div>
+          <span class="tracker-label ${step.cls}">${step.s}</span>
+        </div>`;
+        if (i < steps.length - 1) {
+          html += `<div class="tracker-line ${i < current ? 'done' : ''}"></div>`;
+        }
+      });
+      html += '</div>';
+      return html;
+    }
+
+    function pillHTML(status) {
+      return `<span class="pill pill-${status}">${status}</span>`;
+    }
+
+    async function loadOrders() {
+      try {
+        const rawOrders = await API.getMyOrders();
+        const orders = Array.isArray(rawOrders) ? rawOrders : [];
+        const list = document.getElementById('orders-list');
+        if (!orders.length) {
+          list.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;">
+              <i class="ti ti-receipt" style="font-size:48px;color:var(--border2);display:block;margin-bottom:12px;"></i>
+              <p style="color:var(--muted);font-size:13px;">You have no orders yet.</p>
+              <a href="shop.html" class="btn-primary" style="margin-top:16px;display:inline-flex;">Start Shopping</a>
+            </div>
+          `;
+          return;
+        }
+
+        list.innerHTML = orders.map(o => {
+          // Normalize items — filter out any nulls that JSON_ARRAYAGG may produce
+          let items = o.items || [];
+          if (typeof items === 'string') {
+            try { items = JSON.parse(items); } catch { items = []; }
+          }
+          items = Array.isArray(items) ? items.filter(i => i && i.productName) : [];
+
+          const firstItem = items[0];
+          const more = items.length > 1 ? ` + ${items.length - 1} more` : '';
+          let date = '';
+          try { date = new Date(o.created_at).toLocaleDateString('en-EG', { day: 'numeric', month: 'short', year: 'numeric' }); } catch {}
+
+          const thumbs = items.slice(0, 4).map(item =>
+            `<div class="order-thumb">
+               ${item.imageUrl ? `<img src="${item.imageUrl}" alt="" loading="lazy">` : `<i class="ti ti-shirt" style="font-size:16px;color:var(--border2)"></i>`}
+             </div>`
+          ).join('');
+
+          const status = o.order_status || 'pending';
+
+          return `
+            <div class="order-card">
+              <div class="order-card__top">
+                <div class="order-card__meta">
+                  <span class="order-card__num">${o.order_number || '—'}</span>
+                  <span class="order-card__date">${date}</span>
+                  <span class="order-card__items-count">${items.length} item${items.length!==1?'s':''}</span>
+                  <span class="order-card__total">EGP ${Number(o.total || 0).toFixed(0)}</span>
+                </div>
+                ${pillHTML(status)}
+              </div>
+              ${thumbs ? `<div class="order-card__thumbs">${thumbs}</div>` : ''}
+              <div class="order-card__summary">${firstItem ? `${firstItem.productName}${more}` : 'Order placed'} · Cash on Delivery</div>
+              ${status !== 'cancelled' ? trackerHTML(status) : '<div class="pill pill-cancelled" style="margin-top:8px;">Cancelled</div>'}
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        if (!Auth.isLoggedIn() || /token|unauthorized|forbidden|401|403/i.test(err.message || '')) {
+          Auth.clear();
+          window.location.href = '../index.html';
+          return;
+        }
+        document.getElementById('orders-list').innerHTML = `
+          <div style="text-align:center;padding:40px;color:var(--red);">
+            <i class="ti ti-alert-circle" style="font-size:32px;display:block;margin-bottom:8px;"></i>
+            <p style="font-size:12px;">Unable to load your orders. Please try again later.</p>
+            <button class="btn-primary" style="margin-top:12px;" onclick="loadOrders()">Retry</button>
+          </div>`;
+      }
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>
