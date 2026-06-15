@@ -29,8 +29,10 @@ const settingsCtrl = require('../controllers/settingsController');
 const cities = require('../config/cities');
 
 // Multer
+const productDir = path.join(__dirname, '../uploads/products');
+fs.mkdirSync(productDir, { recursive: true });
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads/products')),
+  destination: (req, file, cb) => cb(null, productDir),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
 });
 const fileFilter = (req, file, cb) => {
@@ -39,8 +41,10 @@ const fileFilter = (req, file, cb) => {
 };
 const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }).array('images', 20);
 
+const catDir = path.join(__dirname, '../uploads/categories');
+fs.mkdirSync(catDir, { recursive: true });
 const catStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, '../uploads/categories')),
+  destination: (req, file, cb) => cb(null, catDir),
   filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`)
 });
 const uploadCat = multer({ storage: catStorage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }).single('image');
