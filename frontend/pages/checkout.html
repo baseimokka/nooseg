@@ -324,16 +324,30 @@
 
     const PAY_LABELS = { COD: 'Cash on Delivery', instapay: 'InstaPay', vodafone_cash: 'Vodafone Cash' };
 
+    // Per-city shipping fees, filled when cities load. Free over EGP 500.
+    let cityFees = {};
+    const DEFAULT_SHIP_FEE = 60;
+    function shipFee() {
+      if (Cart.subtotal() - couponDiscount >= 500) return 0;
+      const city = document.getElementById('ship-city')?.value;
+      return cityFees[city] ?? DEFAULT_SHIP_FEE;
+    }
+
     async function init() {
       // Load cities
       try {
         const cities = await API.getCities();
         const sel = document.getElementById('ship-city');
         cities.forEach(c => {
+          // Tolerate both the old string list and the new { name, fee } objects.
+          const name = typeof c === 'string' ? c : c.name;
+          const fee  = typeof c === 'string' ? DEFAULT_SHIP_FEE : Number(c.fee);
+          cityFees[name] = fee;
           const opt = document.createElement('option');
-          opt.value = c; opt.textContent = c;
+          opt.value = name; opt.textContent = `${name} — EGP ${fee}`;
           sel.appendChild(opt);
         });
+        sel.addEventListener('change', renderSummary);
       } catch {}
 
       // Load payment account info / instructions
@@ -365,7 +379,7 @@
     function renderSummary() {
       const items = Cart.getAll();
       const subtotal = Cart.subtotal();
-      const shipping = subtotal - couponDiscount >= 500 ? 0 : 60;
+      const shipping = shipFee();
       const total = subtotal - couponDiscount + shipping;
 
       document.getElementById('co-items').innerHTML = items.map(item => `
@@ -393,7 +407,7 @@
 
     function orderTotal() {
       const subtotal = Cart.subtotal();
-      const shipping = subtotal - couponDiscount >= 500 ? 0 : 60;
+      const shipping = shipFee();
       return subtotal - couponDiscount + shipping;
     }
 

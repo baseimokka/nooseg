@@ -2,6 +2,13 @@ const pool = require('../config/db');
 const Order = require('../models/Order');
 const Coupon = require('../models/Coupon');
 const { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } = require('../config/pricing');
+const cities = require('../config/cities');
+
+// Per-city shipping fee; falls back to the flat SHIPPING_FEE for unknown cities.
+function cityShippingFee(cityName) {
+  const c = cities.find(x => x.name && x.name.toLowerCase() === String(cityName || '').toLowerCase());
+  return c ? Number(c.fee) : SHIPPING_FEE;
+}
 
 function generateOrderNumber() {
   const d = new Date();
@@ -123,7 +130,7 @@ exports.placeOrder = async (req, res, next) => {
       }
     }
 
-    const shippingCost = subtotal - discount >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    const shippingCost = subtotal - discount >= FREE_SHIPPING_THRESHOLD ? 0 : cityShippingFee(shipping.city);
     const total = parseFloat((subtotal - discount + shippingCost).toFixed(2));
 
     const orderNumber = generateOrderNumber();
