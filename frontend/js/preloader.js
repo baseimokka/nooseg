@@ -10,7 +10,6 @@
   var DURATION = 1500;            // hold the full NOOS logo for 3s before reveal
   var OLIVE = '#626B4C';          // matches the logo artwork background (seamless)
   var BLUSH = '#F5E3E1';          // logo mark tone
-  var base  = window.location.pathname.indexOf('/pages/') !== -1 ? '../' : '';
 
   var style = document.createElement('style');
   style.textContent =
@@ -35,7 +34,7 @@
   pl.setAttribute('aria-hidden', 'true');
   pl.innerHTML =
     '<div class="noos-pl-inner">' +
-      '<img class="noos-pl-logo" alt="NOOS" src="' + base + 'images/noos-monogram.jpg">' +
+      '<img class="noos-pl-logo" alt="NOOS" src="/images/noos-monogram.jpg">' +
       '<div class="noos-pl-bar"></div>' +
     '</div>';
   (document.body || document.documentElement).appendChild(pl);

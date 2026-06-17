@@ -4,17 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NOOS — Never Out Of Stock</title>
-  <link rel="icon" type="image/jpeg" href="images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <link rel="canonical" href="https://nooseg.com/">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="css/global.css">
-  <link rel="stylesheet" href="css/nav.css">
-  <link rel="stylesheet" href="css/home.css">
-  <link rel="stylesheet" href="css/shop.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/home.css">
+  <link rel="stylesheet" href="/css/shop.css">
 </head>
 <body class="home-page">
-  <script src="js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <div id="nav-root"></div>
   <div id="cart-root"></div>
   <div id="auth-root"></div>
@@ -38,7 +39,7 @@
           <span class="section-eyebrow">Most Wanted</span>
           <h2 class="section-title">Best Sellers</h2>
         </div>
-        <a href="pages/shop.html?badge=bestseller" class="section-link">View All →</a>
+        <a href="/shop?badge=bestseller" class="section-link">View All →</a>
       </div>
       <div class="home-products-grid" id="bestsellers-grid">
         <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
@@ -52,7 +53,7 @@
           <span class="section-eyebrow">SS 26</span>
           <h2 class="section-title">Featured Collections</h2>
         </div>
-        <a href="pages/collections.html" class="section-link">All Collections →</a>
+        <a href="/collections" class="section-link">All Collections →</a>
       </div>
       <div class="collections-grid" id="collections-grid"></div>
     </section>
@@ -64,7 +65,7 @@
           <span class="section-eyebrow">Just In</span>
           <h2 class="section-title">New Arrivals</h2>
         </div>
-        <a href="pages/shop.html?badge=new" class="section-link">View All →</a>
+        <a href="/shop?badge=new" class="section-link">View All →</a>
       </div>
       <div class="home-products-grid" id="new-arrivals-grid">
         <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
@@ -116,9 +117,9 @@
 
   <div id="footer-root"></div>
 
-  <script src="js/utils.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     /* ════════════════════════════════════════════════════════════
        HERO MEDIA SYSTEM
@@ -131,14 +132,14 @@
     const DEFAULT_HERO_SLIDES = [
       {
         id: 1, enabled: true, order: 1, mediaType: 'image',
-        desktop: { image: 'images/hero-ss26.avif', video: '' },
-        mobile:  { image: 'images/hero-ss26.avif', video: '' },
+        desktop: { image: '/images/hero-ss26.avif', video: '' },
+        mobile:  { image: '/images/hero-ss26.avif', video: '' },
         label: 'Summer Collection 2026',
         title: 'NOOS',
         subtitle: 'Never Out Of Stock',
         description: 'Premium essentials designed for everyday wear — restocked the moment they sell out.',
-        primary:   { label: 'Shop Now', href: 'pages/shop.html' },
-        secondary: { label: 'Explore Collection', href: 'pages/shop.html' }
+        primary:   { label: 'Shop Now', href: '/shop' },
+        secondary: { label: 'Explore Collection', href: '/shop' }
       },
       {
         id: 2, enabled: true, order: 2, mediaType: 'none',
@@ -148,8 +149,8 @@
         title: 'Quietly Excellent',
         subtitle: 'Wardrobe, refined.',
         description: 'Heavyweight cotton, considered cuts, and a colour story built to last beyond a season.',
-        primary:   { label: 'Shop The Edit', href: 'pages/shop.html' },
-        secondary: { label: 'Our Story', href: 'pages/about.html' }
+        primary:   { label: 'Shop The Edit', href: '/shop' },
+        secondary: { label: 'Our Story', href: '/about' }
       }
     ];
 
@@ -289,7 +290,7 @@
       const grid = document.getElementById(id);
       if (!grid) return;
       grid.innerHTML = (list && list.length)
-        ? list.slice(0, 8).map(p => renderProductCard(p, 'pages/product.html', wishlistIds)).join('')
+        ? list.slice(0, 8).map(p => renderProductCard(p, null, wishlistIds)).join('')
         : `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">${empty}</div>`;
     }
 
@@ -323,7 +324,7 @@
           const img = c.image_url
             ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy">`
             : `<span class="collection-tile__placeholder">${(c.name || 'NOOS')[0]}</span>`;
-          return `<a href="pages/shop.html?category=${c.slug}" class="collection-tile">
+          return `<a href="/shop?category=${c.slug}" class="collection-tile">
               ${img}
               <div class="collection-tile__body">
                 <div class="collection-tile__eyebrow">${c.subtitle ? c.subtitle : 'Collection'}</div>

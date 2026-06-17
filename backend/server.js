@@ -32,22 +32,98 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use(express.static(path.join(__dirname, '../frontend')));
+const { generateSlug } = require('./utils/slug');
+const pool = require('./config/db');
+const FRONTEND = path.join(__dirname, '../frontend');
+const SITE = 'https://nooseg.com';
+
+// ── Clean-URL canonical 301 redirects (old physical paths → clean URLs).
+//    Runs BEFORE express.static so the .html files are never served at their
+//    old paths. Single hop only — the clean targets below return 200. ─────────
+const HTML_TO_CLEAN = {
+  '/index.html':             '/',
+  '/pages/shop.html':        '/shop',
+  '/pages/collections.html': '/collections',
+  '/pages/about.html':       '/about',
+  '/pages/contact.html':     '/contact',
+  '/pages/wishlist.html':    '/wishlist',
+  '/pages/orders.html':      '/orders',
+  '/pages/profile.html':     '/profile',
+  '/pages/checkout.html':    '/checkout',
+  '/pages/admin.html':       '/admin'
+};
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  // /pages/product.html?id=5 → /product/5
+  if (req.path === '/pages/product.html') {
+    return req.query.id
+      ? res.redirect(301, `/product/${encodeURIComponent(req.query.id)}`)
+      : res.redirect(301, '/shop');
+  }
+  const clean = HTML_TO_CLEAN[req.path];
+  if (clean) {
+    const qIdx = req.originalUrl.indexOf('?');
+    const qs = qIdx >= 0 ? req.originalUrl.slice(qIdx) : '';
+    return res.redirect(301, clean + qs);
+  }
+  next();
+});
+
+// Static assets (css, js, images, fonts) + the homepage at "/".
+app.use(express.static(FRONTEND));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API routes
 app.use('/api', require('./routes/index'));
 
-// Unknown API routes → JSON 404 (must come before the SPA fallback so API
-// clients never receive the HTML homepage with a 200 status)
+// Unknown API routes → JSON 404 (must come before page routes so API clients
+// never receive the HTML homepage with a 200 status)
 app.use('/api', (req, res) => {
   res.status(404).json({ success: false, message: 'Endpoint not found' });
 });
 
-// SPA fallback — serve index.html for any non-API route
+// ── SEO: robots.txt + dynamic sitemap.xml ───────────────────────────────────
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').send(
+    'User-agent: *\nAllow: /\n' +
+    'Disallow: /admin\nDisallow: /checkout\nDisallow: /profile\nDisallow: /orders\nDisallow: /wishlist\n' +
+    `Sitemap: ${SITE}/sitemap.xml\n`
+  );
+});
+app.get('/sitemap.xml', async (req, res, next) => {
+  try {
+    const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const staticPaths = ['/', '/shop', '/collections', '/about', '/contact'];
+    const urls = staticPaths.map(p => `  <url><loc>${SITE}${p}</loc></url>`);
+    const [products] = await pool.execute('SELECT id, name, updated_at FROM products WHERE active = 1');
+    for (const p of products) {
+      const lastmod = p.updated_at ? new Date(p.updated_at).toISOString().slice(0, 10) : '';
+      urls.push(`  <url><loc>${SITE}/product/${p.id}/${esc(generateSlug(p.name))}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`);
+    }
+    res.type('application/xml').send(
+      '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+      urls.join('\n') + '\n</urlset>\n'
+    );
+  } catch (e) { next(e); }
+});
+
+// ── Clean page routes → physical files ──────────────────────────────────────
+const page = file => (req, res) => res.sendFile(path.join(FRONTEND, 'pages', file));
+app.get('/shop',        page('shop.html'));
+app.get('/collections', page('collections.html'));
+app.get('/about',       page('about.html'));
+app.get('/contact',     page('contact.html'));
+app.get('/wishlist',    page('wishlist.html'));
+app.get('/orders',      page('orders.html'));
+app.get('/profile',     page('profile.html'));
+app.get('/checkout',    page('checkout.html'));
+app.get('/admin',       page('admin.html'));
+app.get('/product/:id/:slug?', page('product.html'));
+
+// Fallback — serve the homepage for any other non-API GET.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/index.html'));
+  res.sendFile(path.join(FRONTEND, 'index.html'));
 });
 
 // Error handler — log the full error server-side, return a generic message

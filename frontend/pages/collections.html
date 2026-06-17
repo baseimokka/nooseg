@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Collections — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <link rel="canonical" href="https://nooseg.com/collections">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/nav.css">
-  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/home.css">
   <style>
     .collections-hero {
       background: var(--warmdark);
@@ -23,7 +24,7 @@
   </style>
 </head>
 <body class="home-page">
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <div id="nav-root"></div>
   <div id="cart-root"></div>
   <div id="auth-root"></div>
@@ -45,9 +46,9 @@
 
   <div id="footer-root"></div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     document.getElementById('nav-root').innerHTML = renderNav('collections');
     document.getElementById('cart-root').innerHTML = renderCartSidebar();
@@ -65,7 +66,7 @@
           const img = c.image_url
             ? `<img src="${c.image_url}" alt="${c.name}" loading="lazy">`
             : `<span class="collection-tile__placeholder">${(c.name || 'NOOS')[0]}</span>`;
-          return `<a href="shop.html?category=${c.slug}" class="collection-tile">
+          return `<a href="/shop?category=${c.slug}" class="collection-tile">
               ${img}
               <div class="collection-tile__body">
                 <div class="collection-tile__eyebrow">${c.subtitle ? c.subtitle : 'Collection'}</div>

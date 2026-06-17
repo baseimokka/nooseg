@@ -4,22 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/nav.css">
-  <link rel="stylesheet" href="../css/shop.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/shop.css">
 </head>
 <body class="lux-page">
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <div id="nav-root"></div>
   <div id="cart-root"></div>
   <div id="auth-root"></div>
 
   <div class="breadcrumb" id="breadcrumb">
-    <a href="../index.html">Home</a>
+    <a href="/">Home</a>
     <i class="ti ti-chevron-right"></i>
-    <a href="shop.html">Shop</a>
+    <a href="/shop">Shop</a>
     <i class="ti ti-chevron-right"></i>
     <span class="current" id="bc-name">Product</span>
   </div>
@@ -152,9 +152,9 @@
 
   <div id="footer-root"></div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     document.getElementById('nav-root').innerHTML = renderNav('shop');
     document.getElementById('cart-root').innerHTML = renderCartSidebar();
@@ -168,10 +168,14 @@
     let selectedSize = '';
     let selectedVariant = null;
 
-    const productId = new URLSearchParams(window.location.search).get('id');
+    // Clean URL: /product/:id/:slug — fall back to ?id= for any old links.
+    const productId = (function () {
+      const m = window.location.pathname.match(/^\/product\/(\d+)/);
+      return m ? m[1] : new URLSearchParams(window.location.search).get('id');
+    })();
 
     async function loadProduct() {
-      if (!productId) { window.location.href = 'shop.html'; return; }
+      if (!productId) { window.location.href = '/shop'; return; }
       try {
         product = await API.getProduct(productId);
         document.getElementById('bc-name').textContent = product.name;
@@ -179,6 +183,14 @@
         document.getElementById('pdp-name').textContent = product.name;
         document.getElementById('pdp-desc').textContent = product.description || '';
         document.title = `${product.name} — NOOS`;
+
+        // Clean the URL with a slug + set the canonical tag (SEO).
+        const slug = (typeof slugify === 'function') ? slugify(product.name) : '';
+        const cleanPath = `/product/${product.id}${slug ? '/' + slug : ''}`;
+        if (window.location.pathname !== cleanPath) history.replaceState(null, '', cleanPath);
+        let canon = document.querySelector('link[rel="canonical"]');
+        if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+        canon.href = `https://nooseg.com${cleanPath}`;
 
         const rating = Number(product.rating) || 0;
         document.getElementById('pdp-stars').textContent = starHTML(rating);
@@ -490,7 +502,7 @@
           document.getElementById('related-section').style.display = 'none';
           return;
         }
-        grid.innerHTML = related.map(p => renderProductCard(p, 'product.html', [])).join('');
+        grid.innerHTML = related.map(p => renderProductCard(p, null, [])).join('');
       } catch (err) {
         console.error('Related load error', err);
       }

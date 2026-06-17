@@ -4,9 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <meta name="robots" content="noindex">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="/css/global.css">
   <style>
     /* ── Layout ───────────────────────────────────────────── */
     body { background: var(--paper); overflow: hidden; }
@@ -281,7 +282,7 @@
   </style>
 </head>
 <body>
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
 <div class="admin-wrap">
 
   <!-- ── Sidebar ────────────────────────────────────────────── -->
@@ -344,7 +345,7 @@
     </div>
 
     <div class="adm-sidebar-bottom">
-      <a class="adm-nav" href="../index.html"><i class="ti ti-home"></i><span>Store</span></a>
+      <a class="adm-nav" href="/"><i class="ti ti-home"></i><span>Store</span></a>
       <div class="adm-nav" onclick="doLogout()"><i class="ti ti-logout"></i><span>Logout</span></div>
     </div>
   </aside>
@@ -780,7 +781,7 @@
               Shown to customers at checkout when they choose InstaPay or Vodafone Cash.
             </p>
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-              <img src="../images/payments/instapay.png" alt="" style="width:22px;height:22px;object-fit:contain;">
+              <img src="/images/payments/instapay.png" alt="" style="width:22px;height:22px;object-fit:contain;">
               <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);">InstaPay</span>
             </div>
             <div class="m-grp">
@@ -792,7 +793,7 @@
               <input class="form-input" id="st-ip-id" type="text" placeholder="noos@instapay">
             </div>
             <div style="display:flex;align-items:center;gap:8px;margin:16px 0 8px;">
-              <img src="../images/payments/vodafone-cash.jpg" alt="" style="width:22px;height:22px;object-fit:contain;">
+              <img src="/images/payments/vodafone-cash.jpg" alt="" style="width:22px;height:22px;object-fit:contain;">
               <span style="font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);">Vodafone Cash</span>
             </div>
             <div class="m-grp">
@@ -990,11 +991,11 @@
     <div class="m-grp"><label class="form-label">Description</label><textarea class="form-textarea" id="mh-description" placeholder="Premium essentials…"></textarea></div>
     <div class="m-row">
       <div class="m-grp"><label class="form-label">Primary Button Label</label><input class="form-input" id="mh-primary-label" placeholder="Shop Now"></div>
-      <div class="m-grp"><label class="form-label">Primary Button Link</label><input class="form-input" id="mh-primary-href" placeholder="pages/shop.html"></div>
+      <div class="m-grp"><label class="form-label">Primary Button Link</label><input class="form-input" id="mh-primary-href" placeholder="/shop"></div>
     </div>
     <div class="m-row">
       <div class="m-grp"><label class="form-label">Secondary Button Label</label><input class="form-input" id="mh-secondary-label" placeholder="Explore Collection"></div>
-      <div class="m-grp"><label class="form-label">Secondary Button Link</label><input class="form-input" id="mh-secondary-href" placeholder="pages/collections.html"></div>
+      <div class="m-grp"><label class="form-label">Secondary Button Link</label><input class="form-input" id="mh-secondary-href" placeholder="/collections"></div>
     </div>
     <div class="m-row">
       <div class="m-grp"><label class="form-label">Sort Order</label><input class="form-input" id="mh-sort" type="number" value="0"></div>
@@ -1263,12 +1264,12 @@
 <!-- ══════════════════════════════════════════════════════════
      SCRIPTS
 ══════════════════════════════════════════════════════════ -->
-<script src="../js/utils.js"></script>
-<script src="../js/api.js"></script>
+<script src="/js/utils.js"></script>
+<script src="/js/api.js"></script>
 <script>
 /* ── Auth guard ───────────────────────────────────────────── */
 (function() {
-  if (!Auth.isAdmin()) window.location.href = '../index.html';
+  if (!Auth.isAdmin()) window.location.href = '/';
 })();
 
 /* ── State ────────────────────────────────────────────────── */
@@ -1326,7 +1327,7 @@ async function call(method, path, body, isForm) {
   const opts = { method, headers };
   if (body) opts.body = isForm ? body : JSON.stringify(body);
   const r = await fetch('/api' + path, opts);
-  if (r.status === 401 || r.status === 403) { Auth.clear(); window.location.href = '../index.html'; }
+  if (r.status === 401 || r.status === 403) { Auth.clear(); window.location.href = '/'; }
   const j = await r.json();
   if (!j.success) throw new Error(j.message || 'Request failed');
   return j.data;
@@ -2274,7 +2275,7 @@ function confirmDanger(msg, action) {
 ───────────────────────────────────────────────────────────── */
 function doLogout() {
   Auth.clear();
-  window.location.href = '../index.html';
+  window.location.href = '/';
 }
 
 /* ─────────────────────────────────────────────────────────────

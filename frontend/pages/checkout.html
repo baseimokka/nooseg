@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Checkout — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <meta name="robots" content="noindex">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
   <style>
     body { background: var(--paper); color: var(--ink); }
     .co-nav { height:62px;background:var(--noir);border-bottom:1px solid var(--hair);display:flex;align-items:center;justify-content:space-between;padding:0 28px; }
@@ -123,10 +124,10 @@
   </style>
 </head>
 <body>
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <!-- Checkout Nav -->
   <nav class="co-nav">
-    <a href="../index.html" class="co-nav__logo">NOOS</a>
+    <a href="/" class="co-nav__logo">NOOS</a>
     <div class="co-nav__secure"><i class="ti ti-lock" style="font-size:14px;"></i> Secure Checkout</div>
   </nav>
 
@@ -202,7 +203,7 @@
             </label>
             <label class="pay-method">
               <input type="radio" name="payment" value="instapay" onchange="onPaymentChange()">
-              <img class="pay-method__logo" src="../images/payments/instapay.png" alt="InstaPay">
+              <img class="pay-method__logo" src="/images/payments/instapay.png" alt="InstaPay">
               <span class="pay-method__body">
                 <span class="pay-method__name">InstaPay</span>
                 <span class="pay-method__sub">Transfer the total &amp; upload proof</span>
@@ -211,7 +212,7 @@
             </label>
             <label class="pay-method">
               <input type="radio" name="payment" value="vodafone_cash" onchange="onPaymentChange()">
-              <img class="pay-method__logo" src="../images/payments/vodafone-cash.jpg" alt="Vodafone Cash">
+              <img class="pay-method__logo" src="/images/payments/vodafone-cash.jpg" alt="Vodafone Cash">
               <span class="pay-method__body">
                 <span class="pay-method__name">Vodafone Cash</span>
                 <span class="pay-method__sub">Transfer the total &amp; upload proof</span>
@@ -308,14 +309,14 @@
       Thank you — your order is in. We'll call to confirm shortly, and you'll pay cash on delivery when it arrives.
     </p>
     <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;justify-content:center;">
-      <a href="orders.html" class="btn-primary" id="success-track">Track My Order</a>
-      <a href="../index.html" class="btn-outline">Continue Shopping</a>
+      <a href="/orders" class="btn-primary" id="success-track">Track My Order</a>
+      <a href="/" class="btn-outline">Continue Shopping</a>
     </div>
   </div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     let couponDiscount = 0;
     let couponCode = '';

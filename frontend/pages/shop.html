@@ -4,21 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Shop — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <link rel="canonical" href="https://nooseg.com/shop">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/nav.css">
-  <link rel="stylesheet" href="../css/shop.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
+  <link rel="stylesheet" href="/css/shop.css">
 </head>
 <body class="lux-page">
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <div id="nav-root"></div>
   <div id="cart-root"></div>
   <div id="auth-root"></div>
 
   <!-- Breadcrumb -->
   <div class="breadcrumb">
-    <a href="../index.html">Home</a>
+    <a href="/">Home</a>
     <i class="ti ti-chevron-right"></i>
     <span class="current" id="bc-current">Shop</span>
   </div>
@@ -208,9 +209,9 @@
 
   <div id="footer-root"></div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     document.getElementById('nav-root').innerHTML = renderNav('shop');
     document.getElementById('cart-root').innerHTML = renderCartSidebar();
@@ -309,7 +310,7 @@
         const products = await API.getProducts(params);
         document.getElementById('product-count').textContent = `${products.length} products`;
         grid.innerHTML = products.length
-          ? products.map(p => renderProductCard(p, 'product.html', wishlistIds)).join('')
+          ? products.map(p => renderProductCard(p, null, wishlistIds)).join('')
           : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No products found.</div>';
       } catch {
         grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);">Failed to load products.</div>';

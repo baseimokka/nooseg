@@ -1,4 +1,4 @@
-// Determine active nav link from pathname
+// Determine active nav link from pathname (clean URLs)
 function getActivePage() {
   const p = window.location.pathname;
   if (p === '/' || p.endsWith('index.html')) return 'home';
@@ -9,6 +9,24 @@ function getActivePage() {
   if (p.includes('contact')) return 'contact';
   return '';
 }
+
+// Build a URL-safe slug from a product name. Must match backend utils/slug.js
+// so product links and canonical URLs stay consistent.
+function slugify(name) {
+  return String(name || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+// Clean product URL: /product/:id/:slug
+function productUrl(p) {
+  const s = slugify(p && p.name);
+  return `/product/${p.id}${s ? '/' + s : ''}`;
+}
+window.slugify = slugify;
+window.productUrl = productUrl;
 
 // Free-shipping threshold (EGP). Defaults to 500 until the admin-configured
 // value loads from the public settings endpoint (see loadStoreSettings).
@@ -34,27 +52,26 @@ function renderStrip() {
 
 function renderNav(activePage) {
   const active = activePage || getActivePage();
-  const base = window.location.pathname.includes('/pages/') ? '../' : '';
   const adminLink = Auth.isAdmin()
-    ? `<a href="${base}pages/admin.html" class="nav-link">Admin</a>` : '';
+    ? `<a href="/admin" class="nav-link">Admin</a>` : '';
 
   return `
     <nav class="navbar">
-      <a href="${base}index.html" class="nav-logo">
+      <a href="/" class="nav-logo">
         <span class="nav-logo__main">NOOS</span>
         <span class="nav-logo__sub">Never Out Of Stock</span>
       </a>
       <div class="nav-links">
-        <a href="${base}index.html" class="nav-link ${active === 'home' ? 'active' : ''}">Home</a>
-        <a href="${base}pages/shop.html" class="nav-link ${active === 'shop' ? 'active' : ''}">Shop</a>
-        <a href="${base}pages/collections.html" class="nav-link ${active === 'collections' ? 'active' : ''}">Collections</a>
-        <a href="${base}pages/about.html" class="nav-link ${active === 'about' ? 'active' : ''}">About</a>
-        <a href="${base}pages/contact.html" class="nav-link ${active === 'contact' ? 'active' : ''}">Contact</a>
+        <a href="/" class="nav-link ${active === 'home' ? 'active' : ''}">Home</a>
+        <a href="/shop" class="nav-link ${active === 'shop' ? 'active' : ''}">Shop</a>
+        <a href="/collections" class="nav-link ${active === 'collections' ? 'active' : ''}">Collections</a>
+        <a href="/about" class="nav-link ${active === 'about' ? 'active' : ''}">About</a>
+        <a href="/contact" class="nav-link ${active === 'contact' ? 'active' : ''}">Contact</a>
         ${adminLink}
       </div>
       <div class="nav-icons">
         <button class="nav-icon" id="search-toggle"><i class="ti ti-search"></i></button>
-        <a href="${base}pages/wishlist.html" class="nav-icon"><i class="ti ti-heart"></i></a>
+        <a href="/wishlist" class="nav-icon"><i class="ti ti-heart"></i></a>
         <button class="nav-icon" id="user-btn"><i class="ti ti-user"></i></button>
         <button class="nav-icon" id="cart-btn" style="position:relative">
           <i class="ti ti-shopping-bag"></i>
@@ -66,13 +83,13 @@ function renderNav(activePage) {
       </div>
     </nav>
     <div class="mobile-nav" id="mobile-nav">
-      <a href="${base}index.html" class="${active === 'home' ? 'active' : ''}">Home</a>
-      <a href="${base}pages/shop.html" class="${active === 'shop' ? 'active' : ''}">Shop</a>
-      <a href="${base}pages/collections.html" class="${active === 'collections' ? 'active' : ''}">Collections</a>
-      <a href="${base}pages/about.html" class="${active === 'about' ? 'active' : ''}">About</a>
-      <a href="${base}pages/contact.html" class="${active === 'contact' ? 'active' : ''}">Contact</a>
-      ${Auth.isAdmin() ? `<a href="${base}pages/admin.html">Admin</a>` : ''}
-      <a href="${base}pages/wishlist.html">Wishlist</a>
+      <a href="/" class="${active === 'home' ? 'active' : ''}">Home</a>
+      <a href="/shop" class="${active === 'shop' ? 'active' : ''}">Shop</a>
+      <a href="/collections" class="${active === 'collections' ? 'active' : ''}">Collections</a>
+      <a href="/about" class="${active === 'about' ? 'active' : ''}">About</a>
+      <a href="/contact" class="${active === 'contact' ? 'active' : ''}">Contact</a>
+      ${Auth.isAdmin() ? `<a href="/admin">Admin</a>` : ''}
+      <a href="/wishlist">Wishlist</a>
       <a href="#" onclick="document.getElementById('user-btn').click(); document.getElementById('mobile-nav').classList.remove('open'); return false;">My Account</a>
     </div>
     <div class="search-overlay" id="search-overlay">
@@ -100,7 +117,7 @@ function renderProductCard(p, productPath, wishlistedIds = []) {
   ).join('');
   const dotsRow = dots ? `<div class="product-card__colours">${dots}</div>` : '';
   return `
-    <div class="product-card" data-product-id="${p.id}" onclick="window.location='${productPath}?id=${p.id}'">
+    <div class="product-card" data-product-id="${p.id}" onclick="window.location='${productUrl(p)}'">
       <div class="product-card__image">
         ${img}
         ${badge}
@@ -209,7 +226,6 @@ function renderMiniVariantModal() {
 }
 
 function renderFooter() {
-  const base = window.location.pathname.includes('/pages/') ? '../' : '';
   return `
     <footer style="background:var(--ink);padding:28px 22px 18px;border-top:0.5px solid #222;">
       <div class="footer-grid">
@@ -225,11 +241,11 @@ function renderFooter() {
         <div>
           <div style="font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.22);margin-bottom:12px;font-family:var(--fb);">Navigate</div>
           <div style="display:flex;flex-direction:column;gap:7px;">
-            <a href="${base}index.html" style="font-size:11px;color:rgba(255,255,255,0.42);">Home</a>
-            <a href="${base}pages/shop.html" style="font-size:11px;color:rgba(255,255,255,0.42);">Shop</a>
-            <a href="${base}pages/collections.html" style="font-size:11px;color:rgba(255,255,255,0.42);">Collections</a>
-            <a href="${base}pages/about.html" style="font-size:11px;color:rgba(255,255,255,0.42);">About</a>
-            <a href="${base}pages/contact.html" style="font-size:11px;color:rgba(255,255,255,0.42);">Contact</a>
+            <a href="/" style="font-size:11px;color:rgba(255,255,255,0.42);">Home</a>
+            <a href="/shop" style="font-size:11px;color:rgba(255,255,255,0.42);">Shop</a>
+            <a href="/collections" style="font-size:11px;color:rgba(255,255,255,0.42);">Collections</a>
+            <a href="/about" style="font-size:11px;color:rgba(255,255,255,0.42);">About</a>
+            <a href="/contact" style="font-size:11px;color:rgba(255,255,255,0.42);">Contact</a>
           </div>
         </div>
         <div>
@@ -239,7 +255,7 @@ function renderFooter() {
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">Size Guide</a>
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">Returns</a>
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">FAQ</a>
-            <a href="${base}pages/contact.html" style="font-size:11px;color:rgba(255,255,255,0.42);">Contact</a>
+            <a href="/contact" style="font-size:11px;color:rgba(255,255,255,0.42);">Contact</a>
           </div>
         </div>
       </div>
@@ -262,7 +278,7 @@ function renderCartSidebar() {
       <div class="cart-items" id="cart-items"></div>
       <div class="cart-footer">
         <div class="cart-totals" id="cart-totals"></div>
-        <a href="pages/checkout.html" class="btn-primary cart-checkout" id="cart-checkout-btn">Proceed to Checkout</a>
+        <a href="/checkout" class="btn-primary cart-checkout" id="cart-checkout-btn">Proceed to Checkout</a>
       </div>
     </div>
   `;
@@ -342,7 +358,6 @@ function updateCartUI() {
     return;
   }
 
-  const base = window.location.pathname.includes('/pages/') ? '../' : '';
   container.innerHTML = items.map(item => `
     <div class="cart-item">
       <div class="cart-item__img">
@@ -377,7 +392,7 @@ function updateCartUI() {
   const btn = document.getElementById('cart-checkout-btn');
   if (btn) {
     btn.style.display = 'flex';
-    btn.href = `${base}pages/checkout.html`;
+    btn.href = '/checkout';
   }
 }
 
@@ -392,8 +407,7 @@ function initAuth() {
   if (userBtn) {
     userBtn.addEventListener('click', () => {
       if (Auth.isLoggedIn()) {
-        const base = window.location.pathname.includes('/pages/') ? '' : 'pages/';
-        window.location.href = `${base}profile.html`;
+        window.location.href = '/profile';
       } else {
         modal?.classList.add('active');
       }
@@ -445,8 +459,7 @@ function handleSearch(e) {
   e.preventDefault();
   const q = document.getElementById('search-input')?.value?.trim();
   if (!q) return;
-  const base = window.location.pathname.includes('/pages/') ? '' : 'pages/';
-  window.location.href = `${base}shop.html?search=${encodeURIComponent(q)}`;
+  window.location.href = `/shop?search=${encodeURIComponent(q)}`;
 }
 
 function initSearchToggle() {
@@ -518,7 +531,6 @@ window.openQuickView = async function(productId) {
 
 function _renderQVContent() {
   const p = _qvProduct;
-  const base = window.location.pathname.includes('/pages/') ? '' : 'pages/';
   document.getElementById('qv-loading').style.display = 'none';
   document.getElementById('qv-content').style.display = 'block';
 
@@ -568,7 +580,7 @@ function _renderQVContent() {
     discountEl.style.display = 'none';
   }
 
-  document.getElementById('qv-full-link').href = `${base}product.html?id=${p.id}`;
+  document.getElementById('qv-full-link').href = productUrl(p);
   document.getElementById('qv-qty').textContent = 1;
   _qvQty = 1;
 

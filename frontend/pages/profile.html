@@ -4,10 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Profile — NOOS</title>
-  <link rel="icon" type="image/jpeg" href="../images/favicon.jpg">
+  <link rel="icon" type="image/jpeg" href="/images/favicon.jpg">
+  <meta name="robots" content="noindex">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
-  <link rel="stylesheet" href="../css/global.css">
-  <link rel="stylesheet" href="../css/nav.css">
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/nav.css">
   <style>
     .profile-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 62px); }
     .profile-sidebar { background: var(--paper2); border-right: 1px solid var(--hair-d); padding: 32px 0; }
@@ -37,13 +38,13 @@
   </style>
 </head>
 <body class="lux-page">
-  <script src="../js/preloader.js"></script>
+  <script src="/js/preloader.js"></script>
   <div id="nav-root"></div>
   <div id="cart-root"></div>
   <div id="auth-root"></div>
 
   <div class="breadcrumb">
-    <a href="../index.html">Home</a>
+    <a href="/">Home</a>
     <i class="ti ti-chevron-right"></i>
     <span class="current">My Profile</span>
   </div>
@@ -54,9 +55,9 @@
       <div class="profile-name" id="profile-name">Loading...</div>
       <div class="profile-email" id="profile-email"></div>
       <hr class="profile-divider">
-      <a class="profile-nav-item active" href="profile.html"><i class="ti ti-user"></i> My Profile</a>
-      <a class="profile-nav-item" href="orders.html"><i class="ti ti-receipt"></i> Orders</a>
-      <a class="profile-nav-item" href="wishlist.html"><i class="ti ti-heart"></i> Wishlist</a>
+      <a class="profile-nav-item active" href="/profile"><i class="ti ti-user"></i> My Profile</a>
+      <a class="profile-nav-item" href="/orders"><i class="ti ti-receipt"></i> Orders</a>
+      <a class="profile-nav-item" href="/wishlist"><i class="ti ti-heart"></i> Wishlist</a>
       <div class="profile-nav-item logout" onclick="signOut()"><i class="ti ti-logout"></i> Sign Out</div>
     </aside>
 
@@ -115,9 +116,9 @@
 
   <div id="footer-root"></div>
 
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/layout.js"></script>
+  <script src="/js/utils.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/layout.js"></script>
   <script>
     document.getElementById('nav-root').innerHTML = renderNav('');
     document.getElementById('cart-root').innerHTML = renderCartSidebar();
@@ -125,7 +126,7 @@
     document.getElementById('footer-root').innerHTML = renderFooter();
     initLayout();
 
-    if (!Auth.isLoggedIn()) { window.location.href = '../index.html'; }
+    if (!Auth.isLoggedIn()) { window.location.href = '/'; }
 
     async function loadProfile() {
       try {
@@ -185,7 +186,7 @@
 
     function signOut() {
       Auth.clear();
-      window.location.href = '../index.html';
+      window.location.href = '/';
     }
 
     loadProfile();
