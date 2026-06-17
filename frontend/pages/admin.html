@@ -1506,7 +1506,7 @@ async function toggleProductActive(id, current) {
 }
 
 async function deleteProduct(id, name) {
-  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  if (!confirm(`Permanently delete "${name}"?\n\nThis also removes its variants, images and reviews and cannot be undone. Past orders keep their records.\n\nTip: to only hide it, set the product Inactive instead.`)) return;
   try { await call('DELETE', `/products/${id}`); toast('Product deleted'); loadProducts(); }
   catch (e) { toast(e.message, 'error'); }
 }

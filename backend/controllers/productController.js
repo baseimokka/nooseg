@@ -90,7 +90,7 @@ exports.update = async (req, res, next) => {
 
 exports.delete = async (req, res, next) => {
   try {
-    await Product.softDelete(req.params.id);
+    await Product.remove(req.params.id);
     res.json({ success: true, message: 'Deleted' });
   } catch (e) { next(e); }
 };

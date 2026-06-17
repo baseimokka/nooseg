@@ -122,8 +122,11 @@ async function update(id, { name, description, brand, categoryId, price, basePri
   );
 }
 
-async function softDelete(id) {
-  await pool.execute('UPDATE products SET active = 0 WHERE id = ?', [id]);
+async function remove(id) {
+  // Permanent delete. Foreign keys cascade-remove this product's variants,
+  // images, inventory, reviews and wishlist entries. order_items keep their
+  // snapshot (product_id is set to NULL), so past orders stay intact.
+  await pool.execute('DELETE FROM products WHERE id = ?', [id]);
 }
 
 async function setSku(id, sku) {
@@ -154,4 +157,4 @@ async function recalcRating(productId) {
   );
 }
 
-module.exports = { getAll, findById, create, update, softDelete, setSku, setHomeFlags, addImage, recalcRating };
+module.exports = { getAll, findById, create, update, remove, setSku, setHomeFlags, addImage, recalcRating };
