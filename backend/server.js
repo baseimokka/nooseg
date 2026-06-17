@@ -34,6 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 
 const { generateSlug } = require('./utils/slug');
 const pool = require('./config/db');
+const { renderProduct } = require('./middleware/ssrMeta');
+const { productOgImage, defaultOgImage } = require('./middleware/ogImage');
 const FRONTEND = path.join(__dirname, '../frontend');
 const SITE = 'https://nooseg.com';
 
@@ -108,6 +110,10 @@ app.get('/sitemap.xml', async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ── Generated Open Graph share images (1200×630 JPEG) for social previews ────
+app.get('/og/product/:id.jpg', productOgImage);
+app.get('/og/default.jpg', defaultOgImage);
+
 // ── Clean page routes → physical files ──────────────────────────────────────
 const page = file => (req, res) => res.sendFile(path.join(FRONTEND, 'pages', file));
 app.get('/shop',        page('shop.html'));
@@ -119,11 +125,17 @@ app.get('/orders',      page('orders.html'));
 app.get('/profile',     page('profile.html'));
 app.get('/checkout',    page('checkout.html'));
 app.get('/admin',       page('admin.html'));
-app.get('/product/:id/:slug?', page('product.html'));
+// Product pages get server-rendered <head> meta (title/canonical/OG/JSON-LD)
+// injected into product.html so crawlers & social scrapers get correct tags.
+app.get('/product/:id/:slug?', renderProduct);
 
-// Fallback — serve the homepage for any other non-API GET.
-app.get('*', (req, res) => {
-  res.sendFile(path.join(FRONTEND, 'index.html'));
+// Real 404 — unknown routes return a proper Not Found (no more soft-404 that
+// served the homepage with HTTP 200 for every unmatched URL).
+app.use((req, res) => {
+  if (req.method === 'GET' || req.method === 'HEAD') {
+    return res.status(404).sendFile(path.join(FRONTEND, '404.html'));
+  }
+  res.status(404).json({ success: false, message: 'Not found' });
 });
 
 // Error handler — log the full error server-side, return a generic message
