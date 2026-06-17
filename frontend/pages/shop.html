@@ -59,6 +59,7 @@
       </div>
       <div class="filter-group">
         <div class="filter-group__title">Size</div>
+        <div class="size-sub">Tops</div>
         <div class="size-chips" id="size-chips-drawer">
           <div class="size-chip" data-size="XS" onclick="toggleSizeChipDrawer(this)">XS</div>
           <div class="size-chip" data-size="S" onclick="toggleSizeChipDrawer(this)">S</div>
@@ -66,12 +67,18 @@
           <div class="size-chip" data-size="L" onclick="toggleSizeChipDrawer(this)">L</div>
           <div class="size-chip" data-size="XL" onclick="toggleSizeChipDrawer(this)">XL</div>
           <div class="size-chip" data-size="XXL" onclick="toggleSizeChipDrawer(this)">XXL</div>
+        </div>
+        <div class="size-sub">Bottoms</div>
+        <div class="size-chips">
           <div class="size-chip" data-size="28" onclick="toggleSizeChipDrawer(this)">28</div>
           <div class="size-chip" data-size="30" onclick="toggleSizeChipDrawer(this)">30</div>
           <div class="size-chip" data-size="32" onclick="toggleSizeChipDrawer(this)">32</div>
           <div class="size-chip" data-size="34" onclick="toggleSizeChipDrawer(this)">34</div>
           <div class="size-chip" data-size="36" onclick="toggleSizeChipDrawer(this)">36</div>
           <div class="size-chip" data-size="38" onclick="toggleSizeChipDrawer(this)">38</div>
+        </div>
+        <div class="size-sub">Shoes</div>
+        <div class="size-chips">
           <div class="size-chip" data-size="39" onclick="toggleSizeChipDrawer(this)">39</div>
           <div class="size-chip" data-size="40" onclick="toggleSizeChipDrawer(this)">40</div>
           <div class="size-chip" data-size="41" onclick="toggleSizeChipDrawer(this)">41</div>
@@ -83,13 +90,14 @@
       </div>
       <div class="filter-group">
         <div class="filter-group__title">Colour</div>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Black"><span>Black</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="White"><span>White</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Forest Green"><span>Forest Green</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Navy"><span>Navy</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Camel"><span>Camel</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Olive"><span>Olive</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour-d" value="Slate Grey"><span>Slate Grey</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="" checked><span>All</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Black"><span>Black</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="White"><span>White</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Forest Green"><span>Forest Green</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Navy"><span>Navy</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Camel"><span>Camel</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Olive"><span>Olive</span></label>
+        <label class="filter-check"><input type="radio" name="colour-d" value="Slate Grey"><span>Slate Grey</span></label>
       </div>
       <div class="filter-group">
         <div class="filter-group__title">Price (EGP)</div>
@@ -99,9 +107,10 @@
       </div>
       <div class="filter-group">
         <div class="filter-group__title">Badge</div>
-        <label class="filter-check"><input type="checkbox" name="badge-d" value="new"><span>New</span></label>
-        <label class="filter-check"><input type="checkbox" name="badge-d" value="sale"><span>Sale</span></label>
-        <label class="filter-check"><input type="checkbox" name="badge-d" value="bestseller"><span>Bestseller</span></label>
+        <label class="filter-check"><input type="radio" name="badge-d" value="" checked><span>All</span></label>
+        <label class="filter-check"><input type="radio" name="badge-d" value="new"><span>New</span></label>
+        <label class="filter-check"><input type="radio" name="badge-d" value="sale"><span>Sale</span></label>
+        <label class="filter-check"><input type="radio" name="badge-d" value="bestseller"><span>Bestseller</span></label>
       </div>
     </div>
     <div class="filter-drawer-footer">
@@ -122,6 +131,7 @@
 
       <div class="filter-group">
         <div class="filter-group__title">Size</div>
+        <div class="size-sub">Tops</div>
         <div class="size-chips">
           <div class="size-chip" data-size="XS" onclick="toggleSizeChip(this)">XS</div>
           <div class="size-chip" data-size="S" onclick="toggleSizeChip(this)">S</div>
@@ -129,12 +139,18 @@
           <div class="size-chip" data-size="L" onclick="toggleSizeChip(this)">L</div>
           <div class="size-chip" data-size="XL" onclick="toggleSizeChip(this)">XL</div>
           <div class="size-chip" data-size="XXL" onclick="toggleSizeChip(this)">XXL</div>
+        </div>
+        <div class="size-sub">Bottoms</div>
+        <div class="size-chips">
           <div class="size-chip" data-size="28" onclick="toggleSizeChip(this)">28</div>
           <div class="size-chip" data-size="30" onclick="toggleSizeChip(this)">30</div>
           <div class="size-chip" data-size="32" onclick="toggleSizeChip(this)">32</div>
           <div class="size-chip" data-size="34" onclick="toggleSizeChip(this)">34</div>
           <div class="size-chip" data-size="36" onclick="toggleSizeChip(this)">36</div>
           <div class="size-chip" data-size="38" onclick="toggleSizeChip(this)">38</div>
+        </div>
+        <div class="size-sub">Shoes</div>
+        <div class="size-chips">
           <div class="size-chip" data-size="39" onclick="toggleSizeChip(this)">39</div>
           <div class="size-chip" data-size="40" onclick="toggleSizeChip(this)">40</div>
           <div class="size-chip" data-size="41" onclick="toggleSizeChip(this)">41</div>
@@ -147,13 +163,14 @@
 
       <div class="filter-group">
         <div class="filter-group__title">Colour</div>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Black"><span>Black</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="White"><span>White</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Forest Green"><span>Forest Green</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Navy"><span>Navy</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Camel"><span>Camel</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Olive"><span>Olive</span></label>
-        <label class="filter-check"><input type="checkbox" name="colour" value="Slate Grey"><span>Slate Grey</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="" checked><span>All</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Black"><span>Black</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="White"><span>White</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Forest Green"><span>Forest Green</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Navy"><span>Navy</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Camel"><span>Camel</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Olive"><span>Olive</span></label>
+        <label class="filter-check"><input type="radio" name="colour" value="Slate Grey"><span>Slate Grey</span></label>
       </div>
 
       <div class="filter-group">
@@ -164,9 +181,10 @@
 
       <div class="filter-group">
         <div class="filter-group__title">Badge</div>
-        <label class="filter-check"><input type="checkbox" name="badge" value="new"><span>New</span></label>
-        <label class="filter-check"><input type="checkbox" name="badge" value="sale"><span>Sale</span></label>
-        <label class="filter-check"><input type="checkbox" name="badge" value="bestseller"><span>Bestseller</span></label>
+        <label class="filter-check"><input type="radio" name="badge" value="" checked><span>All</span></label>
+        <label class="filter-check"><input type="radio" name="badge" value="new"><span>New</span></label>
+        <label class="filter-check"><input type="radio" name="badge" value="sale"><span>Sale</span></label>
+        <label class="filter-check"><input type="radio" name="badge" value="bestseller"><span>Bestseller</span></label>
       </div>
     </aside>
 
@@ -319,8 +337,8 @@
       let n = 0;
       const dCat = document.querySelector('input[name="cat-d"]:checked')?.value;
       if (dCat) n++;
-      if ([...document.querySelectorAll('input[name="colour-d"]:checked')].length) n++;
-      if ([...document.querySelectorAll('input[name="badge-d"]:checked')].length) n++;
+      if (document.querySelector('input[name="colour-d"]:checked')?.value) n++;
+      if (document.querySelector('input[name="badge-d"]:checked')?.value) n++;
       if (activeSizeDrawer) n++;
       if (Number(document.getElementById('price-range-drawer').value) < 2000) n++;
       return n;
@@ -357,8 +375,10 @@
       if (firstD) firstD.checked = true;
       if (first)  first.checked  = true;
 
-      document.querySelectorAll('input[name="colour-d"], input[name="badge-d"]').forEach(cb => { cb.checked = false; });
-      document.querySelectorAll('input[name="colour"],   input[name="badge"]').forEach(cb => { cb.checked = false; });
+      ['colour-d', 'badge-d', 'colour', 'badge'].forEach(n => {
+        const all = document.querySelector(`input[name="${n}"][value=""]`);
+        if (all) all.checked = true;
+      });
       document.querySelectorAll('#size-chips-drawer .size-chip, .shop-sidebar .size-chip').forEach(c => c.classList.remove('active'));
       activeSizeDrawer = '';
       activeSize = '';
