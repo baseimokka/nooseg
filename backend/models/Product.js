@@ -126,6 +126,10 @@ async function softDelete(id) {
   await pool.execute('UPDATE products SET active = 0 WHERE id = ?', [id]);
 }
 
+async function setSku(id, sku) {
+  await pool.execute('UPDATE products SET sku = ? WHERE id = ?', [sku, id]);
+}
+
 async function setHomeFlags(id, { homeNew, homeBestseller }) {
   await pool.execute(
     'UPDATE products SET home_new = ?, home_bestseller = ? WHERE id = ?',
@@ -150,4 +154,4 @@ async function recalcRating(productId) {
   );
 }
 
-module.exports = { getAll, findById, create, update, softDelete, setHomeFlags, addImage, recalcRating };
+module.exports = { getAll, findById, create, update, softDelete, setSku, setHomeFlags, addImage, recalcRating };

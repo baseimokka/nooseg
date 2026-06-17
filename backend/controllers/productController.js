@@ -45,6 +45,9 @@ exports.create = async (req, res, next) => {
       sku: sku || null, badge: badge || null, isFeature, active,
       homeNew: truthy(homeNew), homeBestseller: truthy(homeBestseller)
     });
+    // Auto-generate a unique SKU when none was supplied, derived from the new
+    // product id (e.g. NOOS-00042) so it can never collide.
+    if (!sku) await Product.setSku(id, `NOOS-${String(id).padStart(5, '0')}`);
     if (req.files && req.files.length > 0) {
       for (let i = 0; i < req.files.length; i++) {
         await Product.addImage(id, `/uploads/products/${req.files[i].filename}`, i);
