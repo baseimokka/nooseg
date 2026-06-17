@@ -10,8 +10,24 @@ function getActivePage() {
   return '';
 }
 
+// Free-shipping threshold (EGP). Defaults to 500 until the admin-configured
+// value loads from the public settings endpoint (see loadStoreSettings).
+let _freeShip = 500;
+window.getFreeShip = () => _freeShip;
+
+async function loadStoreSettings() {
+  try {
+    const s = await API.getPaymentSettings();
+    const v = Number(s && s.free_shipping);
+    if (v > 0) _freeShip = v;
+  } catch {}
+  // Reflect the threshold in any label (class js-free-ship) and the cart sidebar.
+  document.querySelectorAll('.js-free-ship').forEach(el => { el.textContent = _freeShip; });
+  if (typeof updateCartUI === 'function') updateCartUI();
+}
+
 function renderStrip() {
-  const items = ['Free shipping over 500 EGP', 'New arrivals weekly', 'Cash on delivery', 'Never out of stock', 'Premium everyday wear'];
+  const items = ['Free shipping over EGP <span class="js-free-ship">500</span>', 'New arrivals weekly', 'Cash on delivery', 'Never out of stock', 'Premium everyday wear'];
   const html = items.map(t => `<span class="strip__item">${t}</span><span class="strip__item strip__sep">—</span>`).join('');
   return `<div class="strip"><div class="strip__track">${html}${html}</div></div>`;
 }
@@ -349,7 +365,7 @@ function updateCartUI() {
   `).join('');
 
   const subtotal = Cart.subtotal();
-  const shipping = subtotal >= 500 ? 0 : 60;
+  const shipping = subtotal >= _freeShip ? 0 : 60;
   const total = subtotal + shipping;
 
   document.getElementById('cart-totals').innerHTML = `
@@ -762,4 +778,5 @@ function initLayout() {
   initScrollReveal();
   initMobileNav();
   _initModals();
+  loadStoreSettings();
 }

@@ -328,7 +328,8 @@
     let cityFees = {};
     const DEFAULT_SHIP_FEE = 60;
     function shipFee() {
-      if (Cart.subtotal() - couponDiscount >= 500) return 0;
+      const threshold = Number(paymentSettings && paymentSettings.free_shipping) || 500;
+      if (Cart.subtotal() - couponDiscount >= threshold) return 0;
       const city = document.getElementById('ship-city')?.value;
       return cityFees[city] ?? DEFAULT_SHIP_FEE;
     }
