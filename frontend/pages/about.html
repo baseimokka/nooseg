@@ -37,14 +37,14 @@
 
     /* Team */
     .team-section { background: var(--paper2); padding: clamp(56px,8vw,110px) clamp(24px,6vw,48px); border-top: 1px solid var(--hair-d); }
-    .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(12px,2vw,20px); margin-top: 32px; }
+    .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: clamp(12px,2vw,20px); margin: 32px auto 0; max-width: 560px; }
     .team-card { text-align: center; padding: clamp(28px,3vw,44px) 18px; background: var(--card); border: 1px solid var(--hair-d); }
     .team-avatar { width: 64px; height: 64px; border-radius: 50%; background: var(--grn); display: flex; align-items: center; justify-content: center; font-family: var(--f-lux); font-size: 24px; color: var(--paper); margin: 0 auto 16px; }
     .team-name { font-family: var(--fb); font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
     .team-role { font-family: var(--fb); font-size: 11px; color: var(--ink-50); letter-spacing: 0.06em; }
     @media (max-width: 768px) {
       .our-story__grid { grid-template-columns: 1fr; gap: 28px; }
-      .team-grid { grid-template-columns: repeat(3, 1fr); }
+      .team-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 480px) {
       .stats-bar { grid-template-columns: 1fr; }
@@ -109,11 +109,6 @@
         <div class="team-avatar">SM</div>
         <div class="team-name">Sara Mohamed</div>
         <div class="team-role">Head of Operations</div>
-      </div>
-      <div class="team-card">
-        <div class="team-avatar">OI</div>
-        <div class="team-name">Omar Ibrahim</div>
-        <div class="team-role">Head of Product</div>
       </div>
     </div>
   </section>
