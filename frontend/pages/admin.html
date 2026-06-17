@@ -332,6 +332,9 @@
       <a class="adm-nav" href="#" data-panel="coupons" onclick="goPanel('coupons',this);return false;">
         <i class="ti ti-tag"></i><span>Coupons</span>
       </a>
+      <a class="adm-nav" href="#" data-panel="messages" onclick="goPanel('messages',this);return false;">
+        <i class="ti ti-mail"></i><span>Messages</span>
+      </a>
     </div>
     <div class="adm-group">
       <div class="adm-group__label">System</div>
@@ -694,6 +697,29 @@
       </div>
     </div>
 
+    <!-- ┌ Messages ───────────────────────────────────────────┐ -->
+    <div class="adm-panel" id="panel-messages">
+      <div class="adm-topbar">
+        <h1 class="adm-panel-title">Messages</h1>
+        <span id="msg-count" class="adm-date"></span>
+      </div>
+      <div class="adm-body" style="padding:0;">
+        <div class="adm-card" style="margin:16px 18px 0;">
+          <table class="adm-tbl">
+            <thead><tr>
+              <th style="width:18%">From</th>
+              <th style="width:22%">Email</th>
+              <th style="width:14%">Subject</th>
+              <th style="width:26%">Message</th>
+              <th style="width:12%">Received</th>
+              <th style="width:8%">Action</th>
+            </tr></thead>
+            <tbody id="msg-tb"><tr><td colspan="6" class="ld-cell">Loading messages…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ┌ Coupons ────────────────────────────────────────────┐ -->
     <div class="adm-panel" id="panel-coupons">
       <div class="adm-topbar">
@@ -985,6 +1011,16 @@
 </div>
 
 <!-- Variant modal -->
+<div class="adm-modal" id="m-message">
+  <div class="adm-modal__box" style="width:520px;">
+    <div class="adm-modal__hd">
+      <h2 class="adm-modal__title">Message</h2>
+      <button class="adm-modal__close" onclick="closeModal('m-message')"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="m-message-body" style="font-size:12px;color:var(--ink3);"></div>
+  </div>
+</div>
+
 <div class="adm-modal" id="m-variant">
   <div class="adm-modal__box" style="width:480px;">
     <div class="adm-modal__hd">
@@ -1308,7 +1344,7 @@ function goPanel(id, navEl) {
     dashboard: loadDashboard, hero: loadHero, homepage: loadHomepage,
     products: loadProducts, categories: loadCategories,
     variants: loadVariantProducts, inventory: loadInventory, orders: loadOrders,
-    customers: loadCustomers, coupons: loadCoupons, settings: loadSettings
+    customers: loadCustomers, coupons: loadCoupons, messages: loadMessages, settings: loadSettings
   })[id]?.();
 }
 
@@ -2031,6 +2067,75 @@ async function deleteCustomer(id, name) {
   if (String(id) === String(_user.id)) { toast('You cannot delete your own account', 'error'); return; }
   if (!confirm(`Delete "${name}"? All their data will be removed.`)) return;
   try { await call('DELETE', `/admin/users/${id}`); toast('Customer deleted'); loadCustomers(); }
+  catch (e) { toast(e.message, 'error'); }
+}
+
+/* ── Messages ─────────────────────────────────────────────── */
+let _allMessages = [];
+const MSG_SUBJECTS = { order: 'Order Issue', return: 'Return Request', product: 'Product Question', other: 'Other' };
+
+// Escape untrusted contact-form input before injecting into the admin DOM.
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function updateMsgCount() {
+  const unread = _allMessages.filter(m => !m.is_read).length;
+  document.getElementById('msg-count').textContent =
+    `${_allMessages.length} message${_allMessages.length !== 1 ? 's' : ''}${unread ? ` · ${unread} unread` : ''}`;
+}
+
+async function loadMessages() {
+  document.getElementById('msg-tb').innerHTML = '<tr><td colspan="6" class="ld-cell">Loading…</td></tr>';
+  try {
+    _allMessages = await call('GET', '/messages');
+    updateMsgCount();
+    renderMessages();
+  } catch (e) { toast('Failed to load messages: ' + e.message, 'error'); }
+}
+
+function renderMessages() {
+  document.getElementById('msg-tb').innerHTML = _allMessages.length
+    ? _allMessages.map(m => {
+        const subj = MSG_SUBJECTS[m.subject] || m.subject || 'Other';
+        const body = m.body || '';
+        const preview = body.slice(0, 60) + (body.length > 60 ? '…' : '');
+        return `<tr style="${m.is_read ? '' : 'background:var(--grn-pale);'}">
+          <td title="${escHtml(m.name)}">${m.is_read ? '' : '<span style="color:var(--grn);">● </span>'}${escHtml(m.name)}</td>
+          <td style="color:var(--muted);" title="${escHtml(m.email)}">${escHtml(m.email)}</td>
+          <td>${escHtml(subj)}</td>
+          <td style="color:var(--muted);overflow:hidden;text-overflow:ellipsis;" title="${escHtml(body)}">${escHtml(preview)}</td>
+          <td>${fMon(m.created_at)}</td>
+          <td>
+            <button class="tb tb-grn" onclick="viewMessage(${m.id})">View</button>
+            <button class="tb tb-red" onclick="deleteMessage(${m.id})">Del</button>
+          </td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-mail"></i><p>No messages yet</p></div></td></tr>';
+}
+
+async function viewMessage(id) {
+  const m = _allMessages.find(x => String(x.id) === String(id));
+  if (!m) return;
+  const subj = MSG_SUBJECTS[m.subject] || m.subject || 'Other';
+  const lbl = 'color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:0.1em;';
+  document.getElementById('m-message-body').innerHTML = `
+    <div style="margin-bottom:10px;"><span style="${lbl}">From</span><br>${escHtml(m.name)} · <a href="mailto:${escHtml(m.email)}" style="color:var(--grn);">${escHtml(m.email)}</a></div>
+    <div style="margin-bottom:10px;"><span style="${lbl}">Subject</span><br>${escHtml(subj)}</div>
+    <div style="margin-bottom:10px;"><span style="${lbl}">Received</span><br>${fMon(m.created_at)}</div>
+    <div><span style="${lbl}">Message</span><br><div style="margin-top:5px;white-space:pre-wrap;line-height:1.6;">${escHtml(m.body)}</div></div>
+    <div style="margin-top:18px;text-align:right;"><a class="tb tb-grn" style="text-decoration:none;" href="mailto:${escHtml(m.email)}?subject=Re:%20${encodeURIComponent(subj)}">Reply by Email</a></div>`;
+  openModal('m-message');
+  if (!m.is_read) {
+    try { await call('PATCH', `/messages/${id}/read`); m.is_read = 1; updateMsgCount(); renderMessages(); } catch {}
+  }
+}
+
+async function deleteMessage(id) {
+  if (!confirm('Delete this message?')) return;
+  try { await call('DELETE', `/messages/${id}`); toast('Message deleted'); loadMessages(); }
   catch (e) { toast(e.message, 'error'); }
 }
 

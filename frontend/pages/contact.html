@@ -143,10 +143,29 @@
     document.getElementById('footer-root').innerHTML = renderFooter();
     initLayout();
 
-    function sendMessage(e) {
+    async function sendMessage(e) {
       e.preventDefault();
-      Toast.success('Message sent! We\'ll reply within 2 hours.');
-      ['ct-name','ct-email','ct-message'].forEach(id => document.getElementById(id).value = '');
+      const payload = {
+        name: document.getElementById('ct-name').value.trim(),
+        email: document.getElementById('ct-email').value.trim(),
+        subject: document.getElementById('ct-subject').value,
+        body: document.getElementById('ct-message').value.trim()
+      };
+      if (!payload.name || !payload.email || !payload.body) {
+        Toast.error('Please fill in your name, email and message.');
+        return;
+      }
+      const btn = e.target.querySelector('button[type="submit"]');
+      if (btn) btn.disabled = true;
+      try {
+        await API.sendContactMessage(payload);
+        Toast.success('Message sent! We\'ll reply within 2 hours.');
+        ['ct-name','ct-email','ct-message'].forEach(id => document.getElementById(id).value = '');
+      } catch (err) {
+        Toast.error(err.message || 'Could not send your message. Please try again.');
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
   </script>
 </body>

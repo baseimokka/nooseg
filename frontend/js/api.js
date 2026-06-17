@@ -115,6 +115,12 @@ const API = {
   getAdminSettings: () => API._req('GET', '/settings/admin/all', null, true),
   updateSettings: (d) => API._req('PUT', '/settings', d, true),
 
+  // Contact messages
+  sendContactMessage: (d) => API._req('POST', '/contact', d),
+  getMessages: () => API._req('GET', '/messages', null, true),
+  markMessageRead: (id) => API._req('PATCH', `/messages/${id}/read`, null, true),
+  deleteMessage: (id) => API._req('DELETE', `/messages/${id}`, null, true),
+
   // Utilities
   getCities: () => API._req('GET', '/shipping/cities'),
   subscribe: (email) => API._req('POST', '/newsletter/subscribe', { email })

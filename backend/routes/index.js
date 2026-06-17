@@ -26,7 +26,17 @@ const couponCtrl = require('../controllers/couponController');
 const userCtrl = require('../controllers/userController');
 const heroCtrl = require('../controllers/heroController');
 const settingsCtrl = require('../controllers/settingsController');
+const messageCtrl = require('../controllers/messageController');
 const cities = require('../config/cities');
+
+// Throttle the public contact form to blunt spam.
+const contactLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, message: 'Too many messages. Please try again later.' }
+});
 
 // Multer
 const productDir = path.join(__dirname, '../uploads/products');
@@ -163,6 +173,12 @@ router.delete('/admin/users/:id', adminMiddleware, userCtrl.deleteUser);
 router.get('/settings', settingsCtrl.getPublic);
 router.get('/settings/admin/all', adminMiddleware, settingsCtrl.getAll);
 router.put('/settings', adminMiddleware, settingsCtrl.update);
+
+// Contact messages
+router.post('/contact', contactLimiter, messageCtrl.create);
+router.get('/messages', adminMiddleware, messageCtrl.getAll);
+router.patch('/messages/:id/read', adminMiddleware, messageCtrl.markRead);
+router.delete('/messages/:id', adminMiddleware, messageCtrl.delete);
 
 // Shipping
 router.get('/shipping/cities', (req, res) => res.json({ success: true, data: cities }));
