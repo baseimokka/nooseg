@@ -38,11 +38,15 @@ async function getAll({ category, badge, search, sort, minPrice, maxPrice, size,
   if (sort === 'price_asc') orderBy = 'p.price ASC';
   else if (sort === 'price_desc') orderBy = 'p.price DESC';
   else if (sort === 'bestseller') orderBy = 'p.review_count DESC';
+  // When a homepage section is being fetched, the admin's manual arrangement
+  // wins over any sort param so the homepage matches Admin → Homepage exactly.
+  if (homeNew) orderBy = 'p.home_new_order ASC, p.created_at DESC';
+  else if (homeBestseller) orderBy = 'p.home_bestseller_order ASC, p.review_count DESC';
   else if (sort === 'rating') orderBy = 'p.rating DESC';
 
   const sql = `
     SELECT p.id, p.name, p.brand, p.price, p.base_price, p.old_price, p.badge, p.rating, p.review_count, p.is_featured,
-           p.home_new, p.home_bestseller, p.sku, p.active, p.created_at,
+           p.home_new, p.home_bestseller, p.home_new_order, p.home_bestseller_order, p.sku, p.active, p.created_at,
            c.name AS category_name, c.slug AS category_slug,
            (SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order ASC LIMIT 1) AS image_url,
            (SELECT JSON_ARRAYAGG(JSON_OBJECT('colour', pv2.colour, 'hex', pv2.colour_hex))
@@ -134,10 +138,43 @@ async function setSku(id, sku) {
 }
 
 async function setHomeFlags(id, { homeNew, homeBestseller }) {
-  await pool.execute(
-    'UPDATE products SET home_new = ?, home_bestseller = ? WHERE id = ?',
-    [homeNew ? 1 : 0, homeBestseller ? 1 : 0, id]
+  // When a section flag is freshly turned on, append the product to the end of
+  // that section's arrangement (max order + 1) so it doesn't jump to the front.
+  const [[cur]] = await pool.execute(
+    'SELECT home_new, home_bestseller FROM products WHERE id = ?', [id]
   );
+  const sets = ['home_new = ?', 'home_bestseller = ?'];
+  const params = [homeNew ? 1 : 0, homeBestseller ? 1 : 0];
+  if (homeNew && cur && !cur.home_new) {
+    const [[m]] = await pool.execute('SELECT COALESCE(MAX(home_new_order),0)+1 AS n FROM products WHERE home_new = 1');
+    sets.push('home_new_order = ?'); params.push(m.n);
+  }
+  if (homeBestseller && cur && !cur.home_bestseller) {
+    const [[m]] = await pool.execute('SELECT COALESCE(MAX(home_bestseller_order),0)+1 AS n FROM products WHERE home_bestseller = 1');
+    sets.push('home_bestseller_order = ?'); params.push(m.n);
+  }
+  params.push(id);
+  await pool.execute(`UPDATE products SET ${sets.join(', ')} WHERE id = ?`, params);
+}
+
+// Persist a section's manual arrangement: orderedIds are written 1..N to the
+// matching order column. `section` is validated against a whitelist (never
+// interpolated from raw user input) so the column name is safe.
+async function setHomeOrder(section, orderedIds) {
+  const col = section === 'bestseller' ? 'home_bestseller_order' : 'home_new_order';
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    for (let i = 0; i < orderedIds.length; i++) {
+      await conn.execute(`UPDATE products SET ${col} = ? WHERE id = ?`, [i + 1, orderedIds[i]]);
+    }
+    await conn.commit();
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
 }
 
 async function addImage(productId, url, sortOrder = 0, variantId = null, colour = null) {
@@ -157,4 +194,4 @@ async function recalcRating(productId) {
   );
 }
 
-module.exports = { getAll, findById, create, update, remove, setSku, setHomeFlags, addImage, recalcRating };
+module.exports = { getAll, findById, create, update, remove, setSku, setHomeFlags, setHomeOrder, addImage, recalcRating };

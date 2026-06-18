@@ -251,7 +251,12 @@
     .hp-row__thumb { width: 30px; height: 38px; background: var(--surf); overflow: hidden; flex-shrink: 0; }
     .hp-row__thumb img { width: 100%; height: 100%; object-fit: cover; }
     .hp-row__name { font-size: 12px; font-weight: 500; color: var(--ink3); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .hp-row__order { font-size: 10px; color: var(--muted); flex-shrink: 0; }
+    .hp-row__order { font-size: 10px; color: var(--muted); flex-shrink: 0; min-width: 38px; text-align: right; }
+    .hp-row__move { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+    .hp-row__move button { width: 22px; height: 12px; padding: 0; background: transparent; border: 0.5px solid var(--border2); color: var(--ink3); cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+    .hp-row__move button i { font-size: 11px; }
+    .hp-row__move button:hover:not(:disabled) { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .hp-row__move button:disabled { opacity: .3; cursor: default; }
     .hp-row__rm { width: 24px; height: 24px; flex-shrink: 0; background: transparent; border: 0.5px solid var(--red); color: var(--red); cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .hp-row__rm:hover { background: var(--red); color: #fff; }
     .hp-empty { padding: 20px; text-align: center; font-size: 11px; color: var(--muted); border: 1px dashed var(--border2); }
@@ -2479,14 +2484,26 @@ function updateHomeCounts() {
   if (bEl) bEl.textContent = _homeProducts.filter(p => p.home_bestseller).length;
 }
 
-// Render the curated list of products currently in a section.
+// Order column that backs each section's arrangement.
+const HP_ORDER_KEY = { new: 'home_new_order', best: 'home_bestseller_order' };
+
+// Products in a section, sorted by the admin's saved arrangement.
+function homeChosen(which) {
+  const key = HP_KEY[which], okey = HP_ORDER_KEY[which];
+  return _homeProducts.filter(p => p[key]).sort((a, b) => (a[okey] || 0) - (b[okey] || 0));
+}
+
+// Render the curated list of products currently in a section, in order.
 function renderHomeSection(which) {
-  const key = HP_KEY[which];
   const list = document.getElementById('hp-' + which + '-list');
   if (!list) return;
-  const chosen = _homeProducts.filter(p => p[key]);
+  const chosen = homeChosen(which);
   list.innerHTML = chosen.length ? chosen.map((p, i) => `
     <div class="hp-row">
+      <div class="hp-row__move">
+        <button title="Move up" onclick="hpMove('${which}',${p.id},-1)" ${i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-up"></i></button>
+        <button title="Move down" onclick="hpMove('${which}',${p.id},1)" ${i === chosen.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-down"></i></button>
+      </div>
       <div class="hp-row__thumb">${p.image_url ? `<img src="${p.image_url}">` : ''}</div>
       <span class="hp-row__name">${escH(p.name)}</span>
       <span class="hp-row__order">${i < 8 ? '#' + (i + 1) : 'hidden'}</span>
@@ -2494,6 +2511,21 @@ function renderHomeSection(which) {
     </div>`).join('')
     : `<div class="hp-empty">No products yet — search above to add some.</div>`;
   updateHomeCounts();
+}
+
+// Move a product up (-1) or down (+1) within its section and persist the order.
+function hpMove(which, id, dir) {
+  const okey = HP_ORDER_KEY[which];
+  const chosen = homeChosen(which);
+  const idx = chosen.findIndex(p => p.id == id);
+  const swap = idx + dir;
+  if (idx < 0 || swap < 0 || swap >= chosen.length) return;
+  [chosen[idx], chosen[swap]] = [chosen[swap], chosen[idx]];
+  chosen.forEach((p, i) => { p[okey] = i + 1; });   // resequence locally
+  renderHomeSection(which);
+  call('PATCH', '/products/home-order', { section: which, orderedIds: chosen.map(p => p.id) })
+    .then(() => toast('Order updated'))
+    .catch(e => { toast(e.message, 'error'); loadHomeProducts(); });
 }
 
 // Suggestion dropdown of products NOT already in this section.
@@ -2526,7 +2558,13 @@ function hpRemove(which, id) { setHomeFlag(id, which, false); }
 function setHomeFlag(id, which, value) {
   const p = _homeProducts.find(x => x.id == id);
   if (!p) return;
-  p[HP_KEY[which]] = value ? 1 : 0;
+  const key = HP_KEY[which], okey = HP_ORDER_KEY[which];
+  p[key] = value ? 1 : 0;
+  // Append to the end of the section (mirrors the backend) so it doesn't jump to #1.
+  if (value) {
+    const maxOrder = Math.max(0, ..._homeProducts.filter(x => x[key] && x.id != id).map(x => x[okey] || 0));
+    p[okey] = maxOrder + 1;
+  }
   renderHomeSection(which);
   call('PATCH', '/products/' + id + '/home-flags', { homeNew: !!p.home_new, homeBestseller: !!p.home_bestseller })
     .then(() => toast(which === 'new' ? 'New Arrivals updated' : 'Best Sellers updated'))

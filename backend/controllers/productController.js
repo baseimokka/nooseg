@@ -106,6 +106,19 @@ exports.setHomeFlags = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+// Save the manual arrangement of a homepage section (New Arrivals / Best Sellers).
+exports.setHomeOrder = async (req, res, next) => {
+  try {
+    let { section, orderedIds } = req.body;
+    if (section === 'best') section = 'bestseller';
+    if (!['new', 'bestseller'].includes(section) || !Array.isArray(orderedIds)) {
+      return res.status(400).json({ success: false, message: 'section and orderedIds[] required' });
+    }
+    await Product.setHomeOrder(section, orderedIds.map(Number).filter(Number.isInteger));
+    res.json({ success: true, message: 'Order updated' });
+  } catch (e) { next(e); }
+};
+
 exports.uploadColourImages = async (req, res, next) => {
   try {
     const { colour } = req.body;

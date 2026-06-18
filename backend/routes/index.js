@@ -120,7 +120,8 @@ router.delete('/products/:id', adminMiddleware, productCtrl.delete);
 // Colour images (must be before /:id/variants to avoid param conflict)
 router.post('/products/:id/colour-images', adminMiddleware, upload, productCtrl.uploadColourImages);
 
-// Home-section flags (New Arrivals / Best Sellers selection)
+// Home-section flags (New Arrivals / Best Sellers selection) + arrangement
+router.patch('/products/home-order', adminMiddleware, productCtrl.setHomeOrder);
 router.patch('/products/:id/home-flags', adminMiddleware, productCtrl.setHomeFlags);
 
 // Hero slides (CMS)
