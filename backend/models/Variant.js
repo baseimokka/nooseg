@@ -58,17 +58,22 @@ async function deleteById(id) {
 }
 
 async function restock(variantId, qty) {
+  // Upsert: if the variant has no inventory row yet, create it; otherwise add to it.
   await pool.execute(
-    'UPDATE inventory SET stock = stock + ? WHERE variant_id = ?',
-    [qty, variantId]
+    `INSERT INTO inventory (variant_id, stock) VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE stock = stock + VALUES(stock)`,
+    [variantId, qty]
   );
 }
 
 // Set a variant's stock to an absolute value (0 marks the size out of stock).
+// Upsert so it works even when the variant is missing its inventory row —
+// a plain UPDATE would silently match 0 rows and the stock would never change.
 async function setStock(variantId, stock) {
   await pool.execute(
-    'UPDATE inventory SET stock = ? WHERE variant_id = ?',
-    [stock, variantId]
+    `INSERT INTO inventory (variant_id, stock) VALUES (?, ?)
+     ON DUPLICATE KEY UPDATE stock = VALUES(stock)`,
+    [variantId, stock]
   );
 }
 
