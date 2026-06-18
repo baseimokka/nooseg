@@ -58,7 +58,7 @@ const API = {
   createVariant: (productId, d) => API._req('POST', `/products/${productId}/variants`, d, true),
   updateVariant: (productId, variantId, d) => API._req('PUT', `/products/${productId}/variants/${variantId}`, d, true),
   deleteVariant: (productId, variantId) => API._req('DELETE', `/products/${productId}/variants/${variantId}`, null, true),
-  restockVariant: (productId, variantId, qty) => API._req('PATCH', `/products/${productId}/variants/${variantId}/restock`, { qty }, true),
+  setVariantStock: (productId, variantId, stock) => API._req('PATCH', `/products/${productId}/variants/${variantId}/restock`, { stock }, true),
 
   // Orders — multipart so an optional payment-proof screenshot can ride along
   placeOrder: (d) => {

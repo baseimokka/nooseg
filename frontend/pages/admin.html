@@ -1108,20 +1108,20 @@
 <div class="adm-modal" id="m-restock">
   <div class="adm-modal__box" style="width:320px;">
     <div class="adm-modal__hd">
-      <h2 class="adm-modal__title">Restock</h2>
+      <h2 class="adm-modal__title">Set Stock</h2>
       <button class="adm-modal__close" onclick="closeModal('m-restock')"><i class="ti ti-x"></i></button>
     </div>
     <input type="hidden" id="rst-vid">
     <input type="hidden" id="rst-pid">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="rst-label">Restocking variant</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="rst-label">Set stock for variant</div>
     <div class="m-grp">
-      <label class="form-label">Quantity to Add</label>
-      <input class="form-input" id="rst-qty" type="number" min="1" value="10">
+      <label class="form-label">Stock quantity (set 0 for out of stock)</label>
+      <input class="form-input" id="rst-qty" type="number" min="0" value="0">
     </div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px;" id="rst-current"></div>
     <div class="adm-modal__ft">
       <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-restock')">Cancel</button>
-      <button class="btn-green" onclick="saveRestock()"><i class="ti ti-plus"></i> Add Stock</button>
+      <button class="btn-green" onclick="saveRestock()"><i class="ti ti-check"></i> Update Stock</button>
     </div>
   </div>
 </div>
@@ -1383,7 +1383,7 @@ async function loadDashboard() {
           <span style="font-size:11px;">${v.product_name} — <span style="color:var(--muted)">${v.size} / ${v.colour}</span></span>
           <span style="display:flex;align-items:center;gap:6px;">
             <span style="color:var(--red);font-weight:500;font-size:11px;">${v.stock} left</span>
-            <button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${v.product_name} — ${v.size}/${v.colour}',${v.stock})">Restock</button>
+            <button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${v.product_name} — ${v.size}/${v.colour}',${v.stock})">Set Stock</button>
           </span>
         </div>`).join('')
       : '<p style="color:var(--muted);font-size:11px;padding:8px 0;">All variants sufficiently stocked.</p>';
@@ -1670,7 +1670,7 @@ async function loadVariants(productId) {
             <td style="font-weight:500;${stockColor}">${v.stock??0}</td>
             <td><span class="adm-pill ${v.active?'ap-active':'ap-inactive'}">${v.active?'Active':'Inactive'}</span></td>
             <td>
-              <button class="tb tb-gold" onclick="openRestockModal(${v.id},${_varProdId},'${(v.colour||'').replace(/'/g,"\\'")} ${v.size}',${v.stock||0})">Restock</button>
+              <button class="tb tb-gold" onclick="openRestockModal(${v.id},${_varProdId},'${(v.colour||'').replace(/'/g,"\\'")} ${v.size}',${v.stock||0})">Set Stock</button>
               <button class="tb tb-grn" onclick="openEditVariantModal(${v.id})">Edit</button>
               <button class="tb tb-red" onclick="deleteVariant(${v.id})">Del</button>
             </td>
@@ -1827,7 +1827,7 @@ function filterInventory() {
           <td><span class="col-dot" style="background:${v.colour_hex||'#ccc'};"></span>${v.colour}</td>
           <td style="${stColor}">${v.stock}</td>
           <td>${v.low_stock_threshold||5}</td>
-          <td><button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${(v.product_name||'').replace(/'/g,"\\'")} — ${v.size}/${v.colour}',${v.stock})">Restock</button></td>
+          <td><button class="tb tb-gold" onclick="openRestockModal(${v.variant_id},${v.product_id},'${(v.product_name||'').replace(/'/g,"\\'")} — ${v.size}/${v.colour}',${v.stock})">Set Stock</button></td>
         </tr>`;
       }).join('')
     : '<tr><td colspan="6"><div class="empty-st"><i class="ti ti-check"></i><p>All variants sufficiently stocked</p></div></td></tr>';
@@ -1839,8 +1839,9 @@ function filterInventory() {
 function openRestockModal(variantId, productId, label, currentStock) {
   document.getElementById('rst-vid').value       = variantId;
   document.getElementById('rst-pid').value       = productId;
-  document.getElementById('rst-qty').value       = 10;
-  document.getElementById('rst-label').textContent   = 'Restocking: ' + (label || 'variant');
+  // Prefill with the current stock so the admin edits the absolute value.
+  document.getElementById('rst-qty').value       = currentStock !== undefined ? currentStock : 0;
+  document.getElementById('rst-label').textContent   = 'Set stock: ' + (label || 'variant');
   document.getElementById('rst-current').textContent = currentStock !== undefined
     ? `Current stock: ${currentStock}`
     : '';
@@ -1850,11 +1851,11 @@ function openRestockModal(variantId, productId, label, currentStock) {
 async function saveRestock() {
   const vid = document.getElementById('rst-vid').value;
   const pid = document.getElementById('rst-pid').value;
-  const qty = parseInt(document.getElementById('rst-qty').value);
-  if (!qty || qty < 1) { toast('Enter a valid quantity', 'error'); return; }
+  const stock = parseInt(document.getElementById('rst-qty').value, 10);
+  if (!Number.isInteger(stock) || stock < 0) { toast('Enter 0 or a positive whole number', 'error'); return; }
   try {
-    await call('PATCH', `/products/${pid}/variants/${vid}/restock`, { qty });
-    toast(`Added ${qty} units`);
+    await call('PATCH', `/products/${pid}/variants/${vid}/restock`, { stock });
+    toast(stock === 0 ? 'Marked out of stock' : `Stock set to ${stock}`);
     closeModal('m-restock');
     if (_varProdId) loadVariants(_varProdId);
     if (_curPanel === 'inventory') loadInventory();

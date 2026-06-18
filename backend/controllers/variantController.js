@@ -32,11 +32,14 @@ exports.deleteVariant = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
-exports.restockVariant = async (req, res, next) => {
+// Set a variant's stock to an absolute value. 0 is allowed (marks it out of stock).
+exports.setVariantStock = async (req, res, next) => {
   try {
-    const { qty } = req.body;
-    if (!qty || qty < 1) return res.status(400).json({ success: false, message: 'qty must be >= 1' });
-    await Variant.restock(req.params.vid, Number(qty));
-    res.json({ success: true, message: `Restocked +${qty}` });
+    const stock = Number(req.body.stock);
+    if (!Number.isInteger(stock) || stock < 0) {
+      return res.status(400).json({ success: false, message: 'Stock must be 0 or a positive whole number' });
+    }
+    await Variant.setStock(req.params.vid, stock);
+    res.json({ success: true, message: `Stock set to ${stock}` });
   } catch (e) { next(e); }
 };

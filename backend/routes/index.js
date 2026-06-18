@@ -137,7 +137,7 @@ router.get('/products/:id/variants', variantCtrl.getVariants);
 router.post('/products/:id/variants', adminMiddleware, variantCtrl.createVariant);
 router.put('/products/:id/variants/:vid', adminMiddleware, variantCtrl.updateVariant);
 router.delete('/products/:id/variants/:vid', adminMiddleware, variantCtrl.deleteVariant);
-router.patch('/products/:id/variants/:vid/restock', adminMiddleware, variantCtrl.restockVariant);
+router.patch('/products/:id/variants/:vid/restock', adminMiddleware, variantCtrl.setVariantStock);
 
 // Orders
 router.post('/orders', optionalAuth, uploadProof, orderCtrl.placeOrder);

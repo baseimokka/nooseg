@@ -251,7 +251,7 @@ function renderFooter() {
         <div>
           <div style="font-size:9px;letter-spacing:0.22em;text-transform:uppercase;color:rgba(255,255,255,0.22);margin-bottom:12px;font-family:var(--fb);">Help</div>
           <div style="display:flex;flex-direction:column;gap:7px;">
-            <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">Track Order</a>
+            <a href="/orders" style="font-size:11px;color:rgba(255,255,255,0.42);">Track Order</a>
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">Size Guide</a>
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">Returns</a>
             <a href="#" style="font-size:11px;color:rgba(255,255,255,0.42);">FAQ</a>

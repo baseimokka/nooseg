@@ -64,6 +64,14 @@ async function restock(variantId, qty) {
   );
 }
 
+// Set a variant's stock to an absolute value (0 marks the size out of stock).
+async function setStock(variantId, stock) {
+  await pool.execute(
+    'UPDATE inventory SET stock = ? WHERE variant_id = ?',
+    [stock, variantId]
+  );
+}
+
 async function getLowStock() {
   const [rows] = await pool.execute(
     `SELECT pv.id AS variant_id, pv.size, pv.colour, pv.product_id,
@@ -78,4 +86,4 @@ async function getLowStock() {
   return rows;
 }
 
-module.exports = { getByProduct, findById, create, update, deleteById, restock, getLowStock };
+module.exports = { getByProduct, findById, create, update, deleteById, restock, setStock, getLowStock };
