@@ -4,7 +4,7 @@ exports.getWishlist = async (req, res, next) => {
   try {
     const [rows] = await pool.execute(
       `SELECT w.id, w.product_id, w.created_at,
-              p.name, p.price, p.old_price, p.badge,
+              p.name, p.brand, p.price, p.old_price, p.badge,
               c.name AS category_name,
               (SELECT url FROM product_images WHERE product_id = p.id ORDER BY sort_order LIMIT 1) AS image_url
        FROM wishlist w

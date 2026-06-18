@@ -128,7 +128,7 @@ function renderProductCard(p, productPath, wishlistedIds = []) {
         <button class="quick-view-overlay" onclick="event.stopPropagation(); openQuickView(${p.id})">Quick View</button>
       </div>
       <div class="product-card__info">
-        <div class="product-card__cat">${p.category_name || p.brand || 'NOOS'}</div>
+        <div class="product-card__cat">${p.brand || 'NOOS'}</div>
         <div class="product-card__name">${p.name}</div>
         <div class="product-card__price">
           <span class="price-current">EGP ${Number(p.price).toFixed(0)}</span>
