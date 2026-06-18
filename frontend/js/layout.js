@@ -115,7 +115,7 @@ function renderProductCard(p, productPath, wishlistedIds = []) {
   const dots = (p.colours || []).slice(0, 5).map(c =>
     `<span class="pdot" style="background:${c.hex || '#ccc'}" title="${c.colour || ''}"></span>`
   ).join('');
-  const dotsRow = dots ? `<div class="product-card__colours">${dots}</div>` : '';
+  const dotsRow = `<div class="product-card__colours">${dots}</div>`;
   return `
     <div class="product-card" data-product-id="${p.id}" onclick="window.location='${productUrl(p)}'">
       <div class="product-card__image">

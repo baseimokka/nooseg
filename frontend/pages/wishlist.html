@@ -123,7 +123,7 @@
             <div class="wish-card__info">
               <div class="product-card__cat" style="margin-bottom:3px;">${item.category_name || 'NOOS'}</div>
               <div class="product-card__name" style="margin-bottom:6px;">${item.name}</div>
-              <div class="product-card__price" style="margin-bottom:10px;flex-wrap:wrap;">
+              <div class="product-card__price" style="margin-bottom:10px;">
                 <span class="price-current">EGP ${Number(item.price).toFixed(0)}</span>
                 ${hasDiscount ? `<span class="price-old">EGP ${Number(item.old_price).toFixed(0)}</span>` : ''}
                 ${discPct > 0 ? `<span class="price-discount">-${discPct}%</span>` : ''}

@@ -391,13 +391,15 @@ img { display: block; max-width: 100%; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-height: 1.35em;   /* reserve one line so every card matches */
 }
 .product-card__price {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;     /* keep price on one line so card heights match */
   gap: 5px;
   margin-bottom: 2px;
+  min-height: 18px;
 }
 .price-current { font-size: 13px; font-weight: 500; color: var(--ink); }
 .price-old { font-size: 11px; color: var(--muted); text-decoration: line-through; }
@@ -414,6 +416,7 @@ img { display: block; max-width: 100%; }
   display: flex;
   gap: 4px;
   margin-top: 6px;
+  min-height: 10px;   /* reserve dot row so cards without colours match */
 }
 .colour-dot {
   width: 10px;
