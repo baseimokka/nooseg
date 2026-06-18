@@ -329,11 +329,32 @@ body.home-page { background: var(--paper); }
 .section-link:hover::after { transform: scaleX(1); }
 
 /* ── Product grids on dark ──────────────────────────────────── */
+/* Best Sellers & New Arrivals → a single horizontal row. Up to ~4 cards show
+   at their normal size with a sliver of the next peeking; the rest scroll.
+   The slim scrollbar only appears when the row actually overflows (>4 cards),
+   so it's an honest affordance and stays invisible when everything fits. */
 .home-products-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: clamp(10px, 1.6vw, 22px);
+  --hp-gap: clamp(10px, 1.6vw, 22px);
+  display: flex;
+  gap: var(--hp-gap);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hair-d) transparent;
 }
+.home-products-grid::-webkit-scrollbar { height: 3px; }
+.home-products-grid::-webkit-scrollbar-thumb { background: var(--hair-d); }
+.home-products-grid::-webkit-scrollbar-track { background: transparent; }
+.home-products-grid > .product-card {
+  /* grow/shrink/basis set separately — Chrome drops the `flex` shorthand when
+     the basis is a clamp(). */
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: clamp(220px, 23%, 290px);
+  scroll-snap-align: start;
+}
+/* Loading / empty-state message spans the whole row. */
+.home-products-grid > *:not(.product-card) { flex: 1 0 100%; }
 
 .home-lux .product-card {
   background: var(--card);
@@ -585,9 +606,6 @@ body.home-page { background: var(--paper); }
 /* ════════════════════════════════════════════════════════════
    RESPONSIVE
    ════════════════════════════════════════════════════════════ */
-@media (max-width: 1100px) {
-  .home-products-grid { grid-template-columns: repeat(3, 1fr); }
-}
 @media (max-width: 900px) {
   .story { grid-template-columns: 1fr; }
   .story__media { min-height: 340px; }
