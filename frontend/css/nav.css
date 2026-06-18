@@ -109,6 +109,9 @@
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
+  /* Stay pinned to the right edge even when .nav-links (the flex spacer)
+     is hidden on mobile. */
+  margin-left: auto;
 }
 .nav-icon {
   width: 38px;

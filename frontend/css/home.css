@@ -436,7 +436,7 @@ body.home-page { background: var(--paper); }
   overflow: hidden;
   background: var(--warmdark);
 }
-.story__media img { width: 100%; height: 100%; object-fit: cover; }
+.story__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
 .story__media-ghost {
   position: absolute; inset: 0;
   display: grid; place-items: center;
@@ -602,7 +602,29 @@ body.home-page { background: var(--paper); }
   .hero__dot { width: 28px; }
   .hero-copy__cta { gap: 16px; }
   .hero-btn { padding: 15px 26px; flex: 1; justify-content: center; }
-  .home-products-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* Best Sellers & New Arrivals → one continuous, swipeable row on mobile.
+     Full-bleed horizontal scroller with snap; cards keep a peek of the next. */
+  .home-products-grid {
+    display: flex;
+    grid-template-columns: none;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * clamp(28px, 6vw, 110px));
+    padding-inline: clamp(28px, 6vw, 110px);
+    scroll-padding-left: clamp(28px, 6vw, 110px);
+  }
+  .home-products-grid::-webkit-scrollbar { display: none; }
+  .home-products-grid > .product-card {
+    flex: 0 0 clamp(160px, 62%, 230px);
+    scroll-snap-align: start;
+  }
+  /* Loading / empty-state message spans the row */
+  .home-products-grid > *:not(.product-card) { flex: 1 0 100%; }
+
   .section-head { flex-direction: column; align-items: flex-start; gap: 12px; }
 }
 @media (max-width: 480px) {

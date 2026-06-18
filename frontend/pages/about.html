@@ -47,6 +47,7 @@
     .our-story__grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px,4vw,56px); align-items: center; margin-top: 32px; }
     .story-img { aspect-ratio: 4/5; background: var(--warmdark); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
     .story-img::after { content: 'NOOS'; font-family: var(--f-lux); font-size: clamp(60px,9vw,130px); color: var(--ivory-10); letter-spacing: 0.06em; }
+    .story-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
     .story-img i { display: none; }
     .story-text p { font-family: var(--fb); font-size: 14px; font-weight: 300; color: var(--ink-70); line-height: 1.85; margin-bottom: 18px; }
 
@@ -103,7 +104,7 @@
     <span class="about-eyebrow-dark">Our Beginning</span>
     <h2 class="about-section-title">Our Story</h2>
     <div class="our-story__grid">
-      <div class="story-img"><i class="ti ti-shirt"></i></div>
+      <div class="story-img"><img src="/images/story.jpg" alt="NOOS — our story" loading="lazy"></div>
       <div class="story-text">
         <p>NOOS was born in Cairo in 2024 out of a simple frustration: finding well-made everyday menswear that's reliably in stock, at fair prices, and delivered fast. Every Egyptian man knows the feeling of seeing a piece you want sold out in your size.</p>
         <p>We set out to fix that. NOOS maintains deep inventory on core styles — the T-shirts, shirts, chinos, and hoodies that form the backbone of any modern wardrobe. No hype drops, no artificial scarcity. Just great clothes, always available.</p>
