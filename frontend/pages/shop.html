@@ -418,15 +418,10 @@
       loadNextPage();
     }
 
-    function setupInfiniteScroll() {
+    // Load-more is button-driven: the next 12 products load only when the user
+    // clicks "Load More" (no automatic infinite-scroll trigger).
+    function setupLoadMore() {
       loadMoreBtn.addEventListener('click', loadNextPage);
-      if (!('IntersectionObserver' in window)) return;  // graceful: Load More still works
-      // rootMargin 300px → prefetch the next page ~300px before the sentinel shows.
-      const io = new IntersectionObserver(
-        (entries) => { if (entries.some(e => e.isIntersecting)) loadNextPage(); },
-        { root: null, rootMargin: '300px 0px', threshold: 0 }
-      );
-      io.observe(sentinel);
     }
 
     // ── Scroll restoration: Shop → Product → Back keeps the loaded products,
@@ -602,7 +597,7 @@
       if (snap) restoreSnapshot(snap);
       else { clearSnapshot(); applyFilters(); }
 
-      setupInfiniteScroll();
+      setupLoadMore();
     }
     init();
   </script>
