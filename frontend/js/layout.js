@@ -483,6 +483,22 @@ function initScrollReveal() {
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 }
 
+// Toggle the navbar's floating state once the page leaves the very top.
+// rAF-throttled, passive listener — runs once per frame at most.
+function initStickyNav() {
+  const nav = document.querySelector('.navbar');
+  if (!nav) return;
+  let ticking = false;
+  const apply = () => {
+    nav.classList.toggle('scrolled', window.scrollY > 8);
+    ticking = false;
+  };
+  apply();
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+  }, { passive: true });
+}
+
 function initMobileNav() {
   const btn = document.getElementById('nav-hamburger');
   const nav = document.getElementById('mobile-nav');
@@ -788,6 +804,7 @@ function initLayout() {
   initAuth();
   initSearchToggle();
   initScrollReveal();
+  initStickyNav();
   initMobileNav();
   _initModals();
   loadStoreSettings();
