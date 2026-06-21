@@ -356,6 +356,32 @@ body.home-page { background: var(--paper); }
 /* Loading / empty-state message spans the whole row. */
 .home-products-grid > *:not(.product-card) { flex: 1 0 100%; }
 
+/* Carousel arrows (desktop only). Vertically centered on the card image via a
+   JS-measured --nav-top; hidden on mobile (swipe), when the row doesn't
+   overflow, and faded out at each end of the scroll. */
+.hp-carousel { position: relative; }
+.hp-nav {
+  position: absolute;
+  top: var(--nav-top, 38%);
+  transform: translateY(-50%);
+  z-index: 4;
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  background: var(--card);
+  color: var(--ink);
+  border: 1px solid var(--hair-d);
+  font-size: 19px;
+  cursor: pointer;
+  transition: background .25s ease, color .25s ease, border-color .25s ease, opacity .25s ease;
+}
+.hp-nav--prev { left: -23px; }
+.hp-nav--next { right: -23px; }
+.hp-nav:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.hp-nav:disabled { opacity: 0; pointer-events: none; }
+.hp-carousel--static .hp-nav { display: none; }
+
 .home-lux .product-card {
   background: var(--card);
   border: 1px solid var(--hair-d);
@@ -620,6 +646,9 @@ body.home-page { background: var(--paper); }
   .hero__dot { width: 28px; }
   .hero-copy__cta { gap: 16px; }
   .hero-btn { padding: 15px 26px; flex: 1; justify-content: center; }
+
+  /* Mobile navigates by swipe — no arrow buttons. */
+  .hp-nav { display: none; }
 
   /* Best Sellers & New Arrivals → one continuous, swipeable row on mobile.
      Full-bleed horizontal scroller with snap; cards keep a peek of the next. */

@@ -57,8 +57,12 @@
         </div>
         <a href="/shop?badge=bestseller" class="section-link">View All →</a>
       </div>
-      <div class="home-products-grid" id="bestsellers-grid">
-        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+      <div class="hp-carousel">
+        <button class="hp-nav hp-nav--prev" type="button" aria-label="Scroll back" onclick="scrollRow('bestsellers-grid',-1)"><i class="ti ti-chevron-left"></i></button>
+        <div class="home-products-grid" id="bestsellers-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+        </div>
+        <button class="hp-nav hp-nav--next" type="button" aria-label="Scroll forward" onclick="scrollRow('bestsellers-grid',1)"><i class="ti ti-chevron-right"></i></button>
       </div>
     </section>
 
@@ -83,8 +87,12 @@
         </div>
         <a href="/shop?badge=new" class="section-link">View All →</a>
       </div>
-      <div class="home-products-grid" id="new-arrivals-grid">
-        <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+      <div class="hp-carousel">
+        <button class="hp-nav hp-nav--prev" type="button" aria-label="Scroll back" onclick="scrollRow('new-arrivals-grid',-1)"><i class="ti ti-chevron-left"></i></button>
+        <div class="home-products-grid" id="new-arrivals-grid">
+          <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">Loading…</div>
+        </div>
+        <button class="hp-nav hp-nav--next" type="button" aria-label="Scroll forward" onclick="scrollRow('new-arrivals-grid',1)"><i class="ti ti-chevron-right"></i></button>
       </div>
     </section>
 
@@ -311,6 +319,45 @@
         : `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:12px;">${empty}</div>`;
     }
 
+    /* ── Desktop carousel arrows for the product rows ───────────── */
+    const HP_GRIDS = ['bestsellers-grid', 'new-arrivals-grid'];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function scrollRow(id, dir) {
+      const grid = document.getElementById(id);
+      if (!grid) return;
+      grid.scrollBy({ left: dir * grid.clientWidth * 0.8, behavior: reduceMotion ? 'auto' : 'smooth' });
+    }
+
+    // Hide arrows when there's nothing to scroll; fade the one that's at its end.
+    function updateCarousel(id) {
+      const grid = document.getElementById(id);
+      const carousel = grid && grid.closest('.hp-carousel');
+      if (!carousel) return;
+      const max = grid.scrollWidth - grid.clientWidth;
+      carousel.classList.toggle('hp-carousel--static', max <= 2);
+      const prev = carousel.querySelector('.hp-nav--prev');
+      const next = carousel.querySelector('.hp-nav--next');
+      if (prev) prev.disabled = grid.scrollLeft <= 2;
+      if (next) next.disabled = grid.scrollLeft >= max - 2;
+    }
+
+    // Centre the arrows on the card image, then refresh their state.
+    function setupCarousel(id) {
+      const grid = document.getElementById(id);
+      const carousel = grid && grid.closest('.hp-carousel');
+      if (!carousel) return;
+      const img = grid.querySelector('.product-card__image');
+      if (img) carousel.style.setProperty('--nav-top', (img.offsetTop + img.offsetHeight / 2) + 'px');
+      updateCarousel(id);
+    }
+
+    HP_GRIDS.forEach(id => {
+      const grid = document.getElementById(id);
+      if (grid) grid.addEventListener('scroll', () => requestAnimationFrame(() => updateCarousel(id)), { passive: true });
+    });
+    window.addEventListener('resize', () => HP_GRIDS.forEach(setupCarousel));
+
     async function loadProducts() {
       try {
         if (Auth.isLoggedIn()) {
@@ -324,6 +371,9 @@
         ]);
         fillGrid('bestsellers-grid', bestP, 'No best sellers selected yet — pick some in Admin → Homepage.');
         fillGrid('new-arrivals-grid', newP, 'No new arrivals selected yet — pick some in Admin → Homepage.');
+        // Images load after render, so measure on next frame (and again on full load).
+        requestAnimationFrame(() => HP_GRIDS.forEach(setupCarousel));
+        window.addEventListener('load', () => HP_GRIDS.forEach(setupCarousel), { once: true });
       } catch (err) { console.error(err); }
     }
 
