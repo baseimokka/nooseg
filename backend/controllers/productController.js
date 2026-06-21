@@ -3,8 +3,27 @@ const path = require('path');
 
 exports.getAll = async (req, res, next) => {
   try {
-    const { category, badge, search, sort, minPrice, maxPrice, size, colour, homeNew, homeBestseller } = req.query;
-    const products = await Product.getAll({ category, badge, search, sort, minPrice, maxPrice, size, colour, homeNew, homeBestseller });
+    const { category, badge, search, sort, minPrice, maxPrice, size, colour, homeNew, homeBestseller, page, limit } = req.query;
+    const filters = { category, badge, search, sort, minPrice, maxPrice, size, colour, homeNew, homeBestseller };
+
+    // Paginated mode is opt-in via ?limit. Every existing caller (homepage
+    // sections, related products) omits it and keeps the original behaviour of
+    // receiving the full array in `data`.
+    if (limit !== undefined) {
+      const lim = Math.max(1, Math.min(60, parseInt(limit, 10) || 12));
+      const pg  = Math.max(1, parseInt(page, 10) || 1);
+      const [products, total] = await Promise.all([
+        Product.getAll({ ...filters, page: pg, limit: lim }),
+        Product.count(filters)
+      ]);
+      return res.json({
+        success: true,
+        data: products,
+        meta: { page: pg, limit: lim, total, hasMore: pg * lim < total }
+      });
+    }
+
+    const products = await Product.getAll(filters);
     res.json({ success: true, data: products });
   } catch (e) { next(e); }
 };

@@ -830,3 +830,87 @@ body.lux-page { background: var(--paper); color: var(--ink); }
   .shop-topbar { padding: 14px 14px 0; }
   .shop-hero { padding-bottom: 18px; }
 }
+
+/* ════════════════════════════════════════════════════════════
+   Shop pagination — skeleton cards, Load More, status, sentinel
+   ════════════════════════════════════════════════════════════ */
+
+/* Skeleton card mirrors .product-card dimensions so the grid never shifts */
+.skeleton-card {
+  background: var(--card, var(--white));
+  border: 0.5px solid var(--hair-d, var(--border));
+  display: flex;
+  flex-direction: column;
+}
+.skeleton-card__image { aspect-ratio: 3/4; width: 100%; }
+.skeleton-card__info {
+  padding: 12px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+.skeleton-card__info .sk-line { height: 10px; border-radius: 2px; }
+.skeleton-card__btn { height: 38px; width: 100%; }
+
+.sk-shimmer {
+  background: linear-gradient(100deg,
+    rgba(28,28,26,0.05) 30%,
+    rgba(28,28,26,0.11) 50%,
+    rgba(28,28,26,0.05) 70%);
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.3s ease-in-out infinite;
+}
+@keyframes sk-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-shimmer { animation: none; }
+}
+
+/* Load More fallback button (toggled to flex from JS) */
+.load-more-wrap {
+  display: none;
+  justify-content: center;
+  padding: 8px 20px 44px;
+}
+.load-more-btn {
+  padding: 13px 36px;
+  background: var(--ink);
+  color: #fff;
+  border: none;
+  font-family: var(--fb);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 0.2s ease;
+}
+.load-more-btn:hover { background: var(--grn); }
+
+/* Inline status row (errors / retry) */
+.shop-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px 24px;
+  text-align: center;
+}
+.shop-status:empty { display: none; padding: 0; }
+.shop-error-msg { font-size: 12px; color: var(--red); }
+
+/* Empty state lives inside the grid so it spans all columns */
+.shop-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Infinite-scroll trigger — invisible, sits just below the grid */
+#scroll-sentinel { width: 100%; height: 1px; }

@@ -1,8 +1,10 @@
 const pool = require('../config/db');
 
-async function getAll({ category, badge, search, sort, minPrice, maxPrice, size, colour, adminAll, homeNew, homeBestseller } = {}) {
-  // Params are bound positionally, so they must be collected in the same order
-  // the placeholders appear in the SQL: JOIN clauses first, then WHERE clauses.
+// Build the JOIN/WHERE fragments + bound params shared by getAll and count, so
+// the listing query and its total-count query can never drift apart. Params are
+// bound positionally, collected in the order the placeholders appear in the SQL:
+// JOIN clauses first, then WHERE clauses.
+function buildProductFilter({ category, badge, search, minPrice, maxPrice, size, colour, adminAll, homeNew, homeBestseller } = {}) {
   const joinParams = [];
   const whereParams = [];
 
@@ -32,7 +34,12 @@ async function getAll({ category, badge, search, sort, minPrice, maxPrice, size,
   }
 
   const whereSQL = where.length ? `WHERE ${where.join(' AND ')}` : '';
-  const params = [...joinParams, ...whereParams];
+  return { sizeJoin, colourJoin, whereSQL, params: [...joinParams, ...whereParams] };
+}
+
+async function getAll(filters = {}) {
+  const { sort, homeNew, homeBestseller, page, limit } = filters;
+  const { sizeJoin, colourJoin, whereSQL, params } = buildProductFilter(filters);
 
   let orderBy = 'p.created_at DESC';
   if (sort === 'price_asc') orderBy = 'p.price ASC';
@@ -43,6 +50,17 @@ async function getAll({ category, badge, search, sort, minPrice, maxPrice, size,
   if (homeNew) orderBy = 'p.home_new_order ASC, p.created_at DESC';
   else if (homeBestseller) orderBy = 'p.home_bestseller_order ASC, p.review_count DESC';
   else if (sort === 'rating') orderBy = 'p.rating DESC';
+
+  // Pagination is opt-in: only applied when a `limit` is supplied (shop page).
+  // LIMIT/OFFSET are clamped to bounded integers and inlined — mysql2 prepared
+  // statements reject placeholders for LIMIT/OFFSET, and integers validated this
+  // way carry no injection risk. All other values stay parameterised.
+  let pageSQL = '';
+  if (limit) {
+    const lim = Math.max(1, Math.min(60, parseInt(limit, 10) || 12));
+    const pg  = Math.max(1, parseInt(page, 10) || 1);
+    pageSQL = `LIMIT ${lim} OFFSET ${(pg - 1) * lim}`;
+  }
 
   const sql = `
     SELECT p.id, p.name, p.brand, p.price, p.base_price, p.old_price, p.badge, p.rating, p.review_count, p.is_featured,
@@ -59,6 +77,7 @@ async function getAll({ category, badge, search, sort, minPrice, maxPrice, size,
     ${whereSQL}
     GROUP BY p.id
     ORDER BY ${orderBy}
+    ${pageSQL}
   `;
 
   const [rows] = await pool.execute(sql, params);
@@ -68,6 +87,22 @@ async function getAll({ category, badge, search, sort, minPrice, maxPrice, size,
       ? (typeof r.colours === 'string' ? JSON.parse(r.colours) : r.colours)
       : []
   }));
+}
+
+// Total products matching the same filters (ignoring pagination). Drives the
+// shop page's product count and "are there more pages" detection.
+async function count(filters = {}) {
+  const { sizeJoin, colourJoin, whereSQL, params } = buildProductFilter(filters);
+  const sql = `
+    SELECT COUNT(DISTINCT p.id) AS total
+    FROM products p
+    JOIN categories c ON c.id = p.category_id
+    ${sizeJoin}
+    ${colourJoin}
+    ${whereSQL}
+  `;
+  const [rows] = await pool.execute(sql, params);
+  return rows[0] ? Number(rows[0].total) : 0;
 }
 
 async function findById(id) {
@@ -194,4 +229,4 @@ async function recalcRating(productId) {
   );
 }
 
-module.exports = { getAll, findById, create, update, remove, setSku, setHomeFlags, setHomeOrder, addImage, recalcRating };
+module.exports = { getAll, count, findById, create, update, remove, setSku, setHomeFlags, setHomeOrder, addImage, recalcRating };

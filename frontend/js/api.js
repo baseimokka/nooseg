@@ -43,6 +43,15 @@ const API = {
 
   // Products
   getProducts: (q = {}) => API._req('GET', `/products?${new URLSearchParams(q)}`),
+  // Paginated fetch for infinite scroll / load-more. Returns the page array plus
+  // { page, limit, total, hasMore } meta. Additive — getProducts() above is
+  // unchanged and still resolves to a plain array for all other callers.
+  getProductsPage: async (q = {}) => {
+    const res = await fetch(`${API_BASE}/products?${new URLSearchParams(q)}`);
+    const json = await res.json();
+    if (!json.success) throw new Error(json.message || 'Request failed');
+    return { products: json.data || [], meta: json.meta || null };
+  },
   getAdminProducts: () => API._req('GET', '/products/admin/all', null, true),
   getProduct: (id) => API._req('GET', `/products/${id}`),
   createProduct: (fd) => API._upload('POST', '/products', fd),

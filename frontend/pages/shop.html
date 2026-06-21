@@ -218,6 +218,12 @@
       <div class="shop-grid" id="shop-grid">
         <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Loading products...</div>
       </div>
+      <!-- Pagination: error/retry status, Load More fallback, and the infinite-scroll sentinel -->
+      <div class="shop-status" id="shop-status"></div>
+      <div class="load-more-wrap" id="load-more-wrap">
+        <button class="load-more-btn" id="load-more-btn">Load More</button>
+      </div>
+      <div id="scroll-sentinel" aria-hidden="true"></div>
     </main>
   </div>
 
@@ -308,28 +314,179 @@
       return { category: catEl ? catEl.value : '', colour: colours[0]||'', badge: badges[0]||'', maxPrice, sort, size: activeSize };
     }
 
-    async function applyFilters() {
-      const grid = document.getElementById('shop-grid');
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">Loading...</div>';
+    // ─────────────────────────────────────────────────────────────────────
+    //  Shop pagination engine — progressive loading (12/page) via infinite
+    //  scroll with a Load More fallback. Respects every active filter & sort
+    //  exactly as before; the params it sends are identical to the old fetch.
+    // ─────────────────────────────────────────────────────────────────────
+    const PAGE_SIZE = 12;
+    const SNAP_KEY  = 'noos_shop_snapshot';
+    const grid         = document.getElementById('shop-grid');
+    const loadMoreWrap = document.getElementById('load-more-wrap');
+    const loadMoreBtn  = document.getElementById('load-more-btn');
+    const shopStatus   = document.getElementById('shop-status');
+    const sentinel     = document.getElementById('scroll-sentinel');
+
+    let pager = { page: 0, total: 0, hasMore: true, loading: false };
+    let filterToken = 0;   // bumped on every filter change; cancels stale fetches
+
+    // Same param mapping as the original single-shot fetch — unchanged semantics.
+    function buildParams() {
+      const f = getFilters();
+      const params = {};
+      if (f.category) params.category = f.category;
+      if (f.colour)   params.colour   = f.colour;
+      if (f.badge)    params.badge    = f.badge;
+      if (f.maxPrice < 2000) params.maxPrice = f.maxPrice;
+      if (f.sort)     params.sort     = f.sort;
+      if (f.size)     params.size     = f.size;
+      if (initSearch) params.search   = initSearch;
+      return params;
+    }
+
+    function skeletonCard() {
+      return `
+        <div class="skeleton-card" aria-hidden="true">
+          <div class="skeleton-card__image sk-shimmer"></div>
+          <div class="skeleton-card__info">
+            <div class="sk-line sk-shimmer" style="width:42%"></div>
+            <div class="sk-line sk-shimmer" style="width:80%"></div>
+            <div class="sk-line sk-shimmer" style="width:55%"></div>
+          </div>
+          <div class="skeleton-card__btn sk-shimmer"></div>
+        </div>`;
+    }
+    function showSkeletons(n) { grid.insertAdjacentHTML('beforeend', skeletonCard().repeat(n)); }
+    function clearSkeletons() { grid.querySelectorAll('.skeleton-card').forEach(el => el.remove()); }
+
+    function updateCount() {
+      const el = document.getElementById('product-count');
+      const loaded = grid.querySelectorAll('.product-card').length;
+      const n = pager.total || loaded;
+      el.textContent = `${n} product${n === 1 ? '' : 's'}`;
+    }
+
+    function updateControls() {
+      // Load More is shown after every page (fallback) while more remain and we're idle.
+      loadMoreWrap.style.display = (pager.hasMore && !pager.loading) ? 'flex' : 'none';
+    }
+
+    async function loadNextPage() {
+      if (pager.loading || !pager.hasMore) return;
+      pager.loading = true;
+      updateControls();
+      shopStatus.innerHTML = '';
+      const myToken   = filterToken;
+      const nextPage  = pager.page + 1;
+      const firstPage = nextPage === 1;
+      showSkeletons(firstPage ? PAGE_SIZE : 4);
       try {
-        const f = getFilters();
-        const params = {};
-        if (f.category) params.category = f.category;
-        if (f.colour)   params.colour   = f.colour;
-        if (f.badge)    params.badge    = f.badge;
-        if (f.maxPrice < 2000) params.maxPrice = f.maxPrice;
-        if (f.sort)   params.sort   = f.sort;
-        if (f.size)   params.size   = f.size;
-        if (initSearch) params.search = initSearch;
-        const products = await API.getProducts(params);
-        document.getElementById('product-count').textContent = `${products.length} products`;
-        grid.innerHTML = products.length
-          ? products.map(p => renderProductCard(p, null, wishlistIds)).join('')
-          : '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">No products found.</div>';
-      } catch {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--red);">Failed to load products.</div>';
+        const { products, meta } = await API.getProductsPage({ ...buildParams(), page: nextPage, limit: PAGE_SIZE });
+        if (myToken !== filterToken) return;        // a newer filter superseded this request
+        clearSkeletons();
+        if (products.length) {
+          grid.insertAdjacentHTML('beforeend', products.map(p => renderProductCard(p, null, wishlistIds)).join(''));
+        }
+        pager.page    = nextPage;
+        pager.total   = meta ? meta.total : pager.total;
+        pager.hasMore = meta ? meta.hasMore : products.length === PAGE_SIZE;
+        if (firstPage && !grid.querySelector('.product-card')) {
+          grid.innerHTML = '<div class="shop-empty">No products found.</div>';
+        }
+        updateCount();
+      } catch (err) {
+        if (myToken !== filterToken) return;
+        clearSkeletons();
+        // Preserve already-loaded products; offer a retry instead of crashing.
+        shopStatus.innerHTML = `<span class="shop-error-msg">Couldn’t load products.</span>
+          <button class="load-more-btn" type="button" id="retry-btn">Retry</button>`;
+        document.getElementById('retry-btn')?.addEventListener('click', () => { shopStatus.innerHTML = ''; loadNextPage(); });
+      } finally {
+        if (myToken === filterToken) { pager.loading = false; updateControls(); }
       }
     }
+
+    // Reset to page 1 — the single entry point for any filter/sort change. Keeps
+    // the global name `applyFilters` so existing inline on* handlers stay valid.
+    function applyFilters() {
+      filterToken++;
+      pager = { page: 0, total: 0, hasMore: true, loading: false };
+      grid.innerHTML = '';
+      shopStatus.innerHTML = '';
+      clearSnapshot();
+      updateControls();
+      loadNextPage();
+    }
+
+    function setupInfiniteScroll() {
+      loadMoreBtn.addEventListener('click', loadNextPage);
+      if (!('IntersectionObserver' in window)) return;  // graceful: Load More still works
+      // rootMargin 300px → prefetch the next page ~300px before the sentinel shows.
+      const io = new IntersectionObserver(
+        (entries) => { if (entries.some(e => e.isIntersecting)) loadNextPage(); },
+        { root: null, rootMargin: '300px 0px', threshold: 0 }
+      );
+      io.observe(sentinel);
+    }
+
+    // ── Scroll restoration: Shop → Product → Back keeps the loaded products,
+    //    active filters, sort and scroll position (sessionStorage, this tab). ──
+    function snapshotState() {
+      try {
+        // Persist only real product cards — never an in-flight skeleton.
+        const html = [...grid.children]
+          .filter(el => !el.classList.contains('skeleton-card'))
+          .map(el => el.outerHTML).join('');
+        if (html.indexOf('product-card') === -1) return;   // nothing worth restoring
+        sessionStorage.setItem(SNAP_KEY, JSON.stringify({
+          url: location.href, html,
+          page: pager.page, total: pager.total, hasMore: pager.hasMore,
+          scrollY: window.scrollY,
+          filters: {
+            cat:    document.querySelector('input[name="cat"]:checked')?.value || '',
+            colour: document.querySelector('input[name="colour"]:checked')?.value || '',
+            badge:  document.querySelector('input[name="badge"]:checked')?.value || '',
+            size:   activeSize,
+            price:  document.getElementById('price-range').value,
+            sort:   document.getElementById('sort-select').value
+          },
+          ts: Date.now()
+        }));
+      } catch {}
+    }
+    function clearSnapshot() { try { sessionStorage.removeItem(SNAP_KEY); } catch {} }
+    function readSnapshot() {
+      try {
+        const snap = JSON.parse(sessionStorage.getItem(SNAP_KEY) || 'null');
+        if (!snap || snap.url !== location.href) return null;        // different page/filters
+        if (Date.now() - snap.ts > 30 * 60 * 1000) return null;      // stale (30 min)
+        if (!snap.html || snap.html.indexOf('product-card') === -1) return null;
+        return snap;
+      } catch { return null; }
+    }
+    function applySnapshotFilters(f) {
+      const setRadio = (name, val) => {
+        const r = document.querySelector(`input[name="${name}"][value="${String(val || '').replace(/"/g, '')}"]`);
+        if (r) r.checked = true;
+      };
+      setRadio('cat', f.cat); setRadio('colour', f.colour); setRadio('badge', f.badge);
+      document.getElementById('sort-select').value = f.sort || '';
+      const sm = document.getElementById('sort-select-mobile'); if (sm) sm.value = f.sort || '';
+      document.getElementById('price-range').value   = f.price || 2000;
+      document.getElementById('price-val').textContent = f.price || 2000;
+      activeSize = f.size || '';
+      document.querySelectorAll('.shop-sidebar .size-chip').forEach(c =>
+        c.classList.toggle('active', !!activeSize && c.dataset.size === activeSize));
+    }
+    function restoreSnapshot(snap) {
+      applySnapshotFilters(snap.filters || {});
+      grid.innerHTML = snap.html;
+      pager = { page: snap.page || 1, total: snap.total || 0, hasMore: !!snap.hasMore, loading: false };
+      updateCount();
+      updateControls();
+      requestAnimationFrame(() => window.scrollTo(0, snap.scrollY || 0));
+    }
+    window.addEventListener('pagehide', snapshotState);
 
     // Static filter listeners (colour, badge — not category, that's handled after API load)
     document.querySelectorAll('input[name="colour"], input[name="badge"]').forEach(cb => {
@@ -437,7 +594,15 @@
       // Load dynamic categories first, then trigger initial product fetch
       const cats = await loadCategories();
       setShopHeader(cats);
-      applyFilters();
+
+      // On a back/forward navigation, restore the previous session instead of
+      // refetching from scratch; otherwise load page 1 fresh.
+      const nav = performance.getEntriesByType('navigation')[0];
+      const snap = (nav && nav.type === 'back_forward') ? readSnapshot() : null;
+      if (snap) restoreSnapshot(snap);
+      else { clearSnapshot(); applyFilters(); }
+
+      setupInfiniteScroll();
     }
     init();
   </script>
