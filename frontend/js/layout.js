@@ -483,17 +483,36 @@ function initScrollReveal() {
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 }
 
-// Navbar stays pinned and visible at all times (position:sticky). It just
-// deepens — solid bg + shadow — once the page scrolls past the very top, so it
-// reads as floating above the content. rAF-throttled passive listener.
+// Scroll-aware navbar: hides when scrolling down (past 80px), and reveals on
+// any upward scroll or at the top. rAF-throttled passive listener.
 function initStickyNav() {
   const nav = document.querySelector('.navbar');
   if (!nav) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let lastY = window.scrollY;
   let ticking = false;
+
   const update = () => {
     ticking = false;
-    nav.classList.toggle('scrolled', window.scrollY > 8);
+    const y = window.scrollY;
+
+    // Deepen the bar (solid bg + shadow) once we leave the very top.
+    nav.classList.toggle('scrolled', y > 8);
+
+    const overlayOpen =
+      document.getElementById('mobile-nav')?.classList.contains('open') ||
+      document.getElementById('search-overlay')?.classList.contains('active');
+
+    if (reduce || y <= 8 || overlayOpen) {
+      nav.classList.remove('nav-hidden');     // always shown at top / when an overlay is open
+    } else if (y > lastY + 4 && y > 80) {
+      nav.classList.add('nav-hidden');        // scrolling down past 80px → hide
+    } else if (y < lastY - 2) {
+      nav.classList.remove('nav-hidden');     // the slightest scroll up → reveal
+    }
+    lastY = y;
   };
+
   update();
   window.addEventListener('scroll', () => {
     if (!ticking) { ticking = true; requestAnimationFrame(update); }

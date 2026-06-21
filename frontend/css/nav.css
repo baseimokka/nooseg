@@ -52,9 +52,15 @@
   z-index: 500;
   gap: 0;
   box-shadow: 0 0 0 0 rgba(0,0,0,0);
-  transition: background .32s ease, box-shadow .32s ease, border-color .32s ease,
-              backdrop-filter .32s ease;
+  transition: transform .38s cubic-bezier(.4,0,.2,1), background .32s ease,
+              box-shadow .32s ease, border-color .32s ease, backdrop-filter .32s ease;
+  will-change: transform;
 }
+
+/* Auto-hide on scroll-down; reveals on any upward scroll or at the top
+   (.nav-hidden toggled by initStickyNav). Because the navbar is position:sticky
+   it keeps its reserved space, so content never jumps. */
+.navbar.nav-hidden { transform: translateY(-100%); }
 
 /* Floating state — engaged once the page scrolls (see initStickyNav).
    The bar deepens to near-solid noir, the hairline brightens to a sage tint,
