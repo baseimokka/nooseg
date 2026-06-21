@@ -52,8 +52,18 @@
   z-index: 500;
   gap: 0;
   box-shadow: 0 0 0 0 rgba(0,0,0,0);
-  transition: background .32s ease, box-shadow .32s ease, border-color .32s ease,
-              backdrop-filter .32s ease;
+  transition: transform .4s cubic-bezier(.4,0,.2,1), background .32s ease,
+              box-shadow .32s ease, border-color .32s ease, backdrop-filter .32s ease;
+  will-change: transform;
+}
+
+/* Auto-hide — the bar slides up out of view on scroll-down and returns on
+   scroll-up (.nav-hidden toggled by initStickyNav). Because the navbar is
+   position:sticky it keeps its reserved space, so content never jumps. */
+.navbar.nav-hidden { transform: translateY(-100%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar { transition: none; }   /* never animate / hide for these users */
 }
 
 /* Floating state — engaged once the page scrolls (see initStickyNav).

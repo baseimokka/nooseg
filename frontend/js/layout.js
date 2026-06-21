@@ -483,19 +483,41 @@ function initScrollReveal() {
   document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
 }
 
-// Toggle the navbar's floating state once the page leaves the very top.
-// rAF-throttled, passive listener — runs once per frame at most.
+// Scroll-aware navbar: slides up out of view on scroll-down, slides back on
+// scroll-up, and is always shown near the top. rAF-throttled passive listener.
 function initStickyNav() {
   const nav = document.querySelector('.navbar');
   if (!nav) return;
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const REVEAL_AT = 8;   // px from top where the bar is always shown
+  const DELTA = 6;       // ignore tiny scroll jitter before reacting
+  let lastY = window.scrollY;
   let ticking = false;
-  const apply = () => {
-    nav.classList.toggle('scrolled', window.scrollY > 8);
+
+  const update = () => {
     ticking = false;
+    const y = window.scrollY;
+
+    // Deepen the bar (solid bg + shadow) once we leave the very top.
+    nav.classList.toggle('scrolled', y > REVEAL_AT);
+
+    // Keep the bar visible at the top, while an anchored overlay is open,
+    // or when the user prefers reduced motion.
+    const overlayOpen =
+      document.getElementById('mobile-nav')?.classList.contains('open') ||
+      document.getElementById('search-overlay')?.classList.contains('active');
+
+    if (reduce || y <= REVEAL_AT || overlayOpen) {
+      nav.classList.remove('nav-hidden');
+    } else if (Math.abs(y - lastY) > DELTA) {
+      nav.classList.toggle('nav-hidden', y > lastY);  // down → hide, up → reveal
+    }
+    lastY = y;
   };
-  apply();
+
+  update();
   window.addEventListener('scroll', () => {
-    if (!ticking) { ticking = true; requestAnimationFrame(apply); }
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
   }, { passive: true });
 }
 
