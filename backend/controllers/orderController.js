@@ -4,6 +4,7 @@ const Coupon = require('../models/Coupon');
 const { FREE_SHIPPING_THRESHOLD, SHIPPING_FEE } = require('../config/pricing');
 const cities = require('../config/cities');
 const Settings = require('../models/Settings');
+const metaCapi = require('../services/metaCapi');
 
 // Per-city shipping fee; falls back to the flat SHIPPING_FEE for unknown cities.
 function cityShippingFee(cityName) {
@@ -162,6 +163,34 @@ exports.placeOrder = async (req, res, next) => {
     }
 
     await conn.commit();
+
+    // ── Meta Conversions API: server-side Purchase ──────────────────────────
+    // Fired after the transaction commits and de-duplicated against the browser
+    // Pixel via the shared event_id (sent by the client in `tracking`). Wrapped
+    // + fire-and-forget so a tracking failure can NEVER affect the order.
+    try {
+      let tracking = {};
+      try { tracking = parse(req.body.tracking) || {}; } catch { tracking = {}; }
+      metaCapi.sendPurchaseEvent({
+        eventId: tracking.eventId,
+        eventSourceUrl: tracking.eventSourceUrl,
+        fbp: tracking.fbp,
+        fbc: tracking.fbc,
+        email: req.user?.email || shipping.email || null,
+        phone: shipping.phone,
+        clientIp: req.ip,
+        userAgent: req.headers['user-agent'],
+        value: total,
+        currency: 'EGP',
+        contentIds: priced.map(l => String(l.productId)),
+        contents: priced.map(l => ({ id: String(l.productId), quantity: l.quantity, item_price: l.unitPrice })),
+        numItems: priced.reduce((s, l) => s + l.quantity, 0),
+        orderId: orderNumber
+      }).catch(err => console.error('Meta CAPI Purchase failed:', err.message));
+    } catch (err) {
+      console.error('Meta CAPI Purchase setup error:', err.message);
+    }
+
     res.status(201).json({ success: true, data: { orderId, orderNumber, total, paymentMethod, paymentStatus } });
   } catch (e) {
     await conn.rollback();

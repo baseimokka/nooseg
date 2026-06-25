@@ -314,6 +314,7 @@
     </div>
   </div>
 
+  <script src="/js/pixel.js"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/api.js"></script>
   <script src="/js/layout.js?v=7"></script>
@@ -357,6 +358,12 @@
       setupProofDropzone();
 
       renderSummary();
+
+      // Meta Pixel — InitiateCheckout (once, when the cart isn't empty)
+      var _icItems = Cart.getAll();
+      if (_icItems.length && window.MetaPixel) {
+        window.MetaPixel.initiateCheckout(_icItems, Cart.subtotal());
+      }
 
       // Prefill if logged in
       if (Auth.isLoggedIn()) {
@@ -591,6 +598,8 @@
       try {
         const items = Cart.getAll();
         const method = currentMethod();
+        // Shared id so the browser Pixel + server CAPI Purchase de-duplicate.
+        const purchaseEventId = window.MetaPixel ? window.MetaPixel.genEventId() : null;
         const data = await API.placeOrder({
           items: items.map(i => ({
             productId: i.productId, variantId: i.variantId, name: i.name,
@@ -605,8 +614,23 @@
           },
           couponCode: couponCode || undefined,
           paymentMethod: method,
-          paymentProof: (method !== 'COD') ? proofFile : null
+          paymentProof: (method !== 'COD') ? proofFile : null,
+          tracking: window.MetaPixel ? {
+            eventId: purchaseEventId,
+            fbp: window.MetaPixel.getFbp(),
+            fbc: window.MetaPixel.getFbc(),
+            eventSourceUrl: window.location.href
+          } : undefined
         });
+
+        // Meta Pixel — browser Purchase (deduplicated server-side via purchaseEventId)
+        if (window.MetaPixel) {
+          window.MetaPixel.purchase({
+            items: items,
+            value: (data.total != null) ? Number(data.total) : orderTotal(),
+            orderId: data.orderNumber
+          }, purchaseEventId);
+        }
 
         setStep(3);
         Cart.clear();

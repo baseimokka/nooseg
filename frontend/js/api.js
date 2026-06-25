@@ -77,6 +77,8 @@ const API = {
     if (d.couponCode) fd.append('couponCode', d.couponCode);
     fd.append('paymentMethod', d.paymentMethod || 'COD');
     if (d.paymentProof) fd.append('paymentProof', d.paymentProof);
+    // Meta CAPI de-dup data (event_id / fbp / fbc / source url) for server Purchase
+    if (d.tracking) fd.append('tracking', JSON.stringify(d.tracking));
     return API._uploadMaybeAuth('POST', '/orders', fd);
   },
   getMyOrders: () => API._req('GET', '/orders', null, true),

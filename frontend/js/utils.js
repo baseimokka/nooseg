@@ -95,6 +95,8 @@ const Cart = {
       items.push({ ...item });
     }
     this.save(items);
+    // Meta Pixel AddToCart — guarded; pixel.js is absent on the admin panel.
+    if (window.MetaPixel) window.MetaPixel.addToCart(item);
   },
 
   remove(variantId, productId) {
