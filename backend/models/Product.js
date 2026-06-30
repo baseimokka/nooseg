@@ -219,6 +219,65 @@ async function addImage(productId, url, sortOrder = 0, variantId = null, colour 
   );
 }
 
+// ── Photo management (add / list / arrange / remove / re-tag) ──────────────
+
+// All images for a product, in display order.
+async function getImages(productId) {
+  const [rows] = await pool.execute(
+    'SELECT id, product_id, variant_id, colour, url, sort_order FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+    [productId]
+  );
+  return rows;
+}
+
+// Single image row (used to verify ownership + locate the file before deleting).
+async function findImage(imageId) {
+  const [rows] = await pool.execute(
+    'SELECT id, product_id, url FROM product_images WHERE id = ?',
+    [imageId]
+  );
+  return rows[0] || null;
+}
+
+// Next sort_order so freshly uploaded photos append to the end of the gallery.
+async function nextImageSort(productId) {
+  const [[r]] = await pool.execute(
+    'SELECT COALESCE(MAX(sort_order), -1) + 1 AS n FROM product_images WHERE product_id = ?',
+    [productId]
+  );
+  return r.n;
+}
+
+async function deleteImage(imageId) {
+  await pool.execute('DELETE FROM product_images WHERE id = ?', [imageId]);
+}
+
+// Re-tag an image to a colour group (null = general/all-colours image).
+async function setImageColour(imageId, colour) {
+  await pool.execute('UPDATE product_images SET colour = ? WHERE id = ?', [colour || null, imageId]);
+}
+
+// Persist a gallery arrangement: orderedIds are written 1..N to sort_order.
+// Scoped to the product so an image can't be reordered into another product.
+async function setImageOrder(productId, orderedIds) {
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+    for (let i = 0; i < orderedIds.length; i++) {
+      await conn.execute(
+        'UPDATE product_images SET sort_order = ? WHERE id = ? AND product_id = ?',
+        [i + 1, orderedIds[i], productId]
+      );
+    }
+    await conn.commit();
+  } catch (e) {
+    await conn.rollback();
+    throw e;
+  } finally {
+    conn.release();
+  }
+}
+
 async function recalcRating(productId) {
   await pool.execute(
     `UPDATE products p SET
@@ -229,4 +288,8 @@ async function recalcRating(productId) {
   );
 }
 
-module.exports = { getAll, count, findById, create, update, remove, setSku, setHomeFlags, setHomeOrder, addImage, recalcRating };
+module.exports = {
+  getAll, count, findById, create, update, remove, setSku, setHomeFlags, setHomeOrder,
+  addImage, getImages, findImage, nextImageSort, deleteImage, setImageColour, setImageOrder,
+  recalcRating
+};

@@ -262,6 +262,25 @@
     .hp-empty { padding: 20px; text-align: center; font-size: 11px; color: var(--muted); border: 1px dashed var(--border2); }
     @media (max-width: 900px) { .hp-sections { grid-template-columns: 1fr; } }
 
+    /* ── Photo manager ────────────────────────────────────── */
+    .pm-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .pm-card { border: 0.5px solid var(--border); background: var(--white); display: flex; flex-direction: column; }
+    .pm-card__img { position: relative; aspect-ratio: 3/4; background: var(--surf); overflow: hidden; }
+    .pm-card__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pm-card__pos { position: absolute; top: 4px; left: 4px; background: var(--ink); color: #fff; font-size: 9px; font-weight: 500; letter-spacing: 0.06em; padding: 2px 6px; }
+    .pm-card__rm { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; background: var(--red); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+    .pm-card__rm:hover { background: #8d2b22; }
+    .pm-card__rm i { font-size: 12px; }
+    .pm-card__move { position: absolute; bottom: 4px; left: 4px; display: flex; gap: 3px; }
+    .pm-card__move button { width: 24px; height: 22px; padding: 0; background: rgba(13,13,13,0.78); border: none; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .pm-card__move button:hover:not(:disabled) { background: var(--grn); }
+    .pm-card__move button:disabled { opacity: .35; cursor: default; }
+    .pm-card__move button i { font-size: 12px; }
+    .pm-card__ft { padding: 6px; }
+    .pm-card__ft select { width: 100%; font-size: 10px; padding: 4px 5px; border: 0.5px solid var(--border2); background: var(--white); color: var(--ink3); }
+    .pm-empty { grid-column: 1/-1; padding: 24px; text-align: center; font-size: 11px; color: var(--muted); border: 1px dashed var(--border2); }
+    @media (max-width: 760px) { .pm-grid { grid-template-columns: repeat(2, 1fr); } }
+
     /* ── Responsive ───────────────────────────────────────── */
     @media (max-width: 1100px) { .stat-row { grid-template-columns: repeat(2,1fr); } }
     @media (max-width: 900px)  { .dash-bot { grid-template-columns: 1fr; } }
@@ -883,6 +902,45 @@
   </div>
 </div>
 
+<!-- Photo manager modal -->
+<div class="adm-modal" id="m-photos">
+  <div class="adm-modal__box" style="width:640px;">
+    <div class="adm-modal__hd">
+      <div>
+        <h2 class="adm-modal__title">Manage Photos</h2>
+        <span style="font-size:10px;color:var(--muted);" id="pm-prod-name"></span>
+      </div>
+      <button class="adm-modal__close" onclick="closeModal('m-photos')"><i class="ti ti-x"></i></button>
+    </div>
+    <input type="hidden" id="pm-prod-id">
+
+    <!-- Add photos -->
+    <div style="background:var(--surf);padding:10px 12px;margin-bottom:12px;">
+      <div class="m-row" style="align-items:flex-end;">
+        <div class="m-grp" style="margin-bottom:0;">
+          <label class="form-label">Add Photos (jpg/png/webp)</label>
+          <input type="file" id="pm-files" multiple accept=".jpg,.jpeg,.png,.webp" style="font-size:11px;padding:6px 0;">
+        </div>
+        <div class="m-grp" style="margin-bottom:0;">
+          <label class="form-label">Assign to colour</label>
+          <select class="form-select" id="pm-colour"><option value="">All colours (general)</option></select>
+        </div>
+        <button class="btn-green" style="white-space:nowrap;" onclick="addProductPhotos()"><i class="ti ti-upload"></i> Upload</button>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px;">Tag a photo with a colour to show it only when that colour is selected on the product page. The first photo (#1) is the product thumbnail.</div>
+    </div>
+
+    <!-- Gallery -->
+    <div id="pm-grid" class="pm-grid">
+      <div class="pm-empty">Loading…</div>
+    </div>
+
+    <div class="adm-modal__ft">
+      <button class="tb tb-ink" style="padding:8px 16px;" onclick="closeModal('m-photos')">Done</button>
+    </div>
+  </div>
+</div>
+
 <!-- Category modal -->
 <div class="adm-modal" id="m-category">
   <div class="adm-modal__box" style="width:420px;">
@@ -1435,6 +1493,7 @@ function filterProducts() {
         <td><div class="tog ${p.active?'on':''}" onclick="toggleProductActive(${p.id},${!!p.active})"></div></td>
         <td>
           <button class="tb tb-grn" onclick="openProductModal(${p.id})">Edit</button>
+          <button class="tb tb-ink" onclick="openPhotoManager(${p.id},'${p.name.replace(/'/g,"\\'")}')">Photos</button>
           <button class="tb tb-red" onclick="deleteProduct(${p.id},'${p.name.replace(/'/g,"\\'")}')">Del</button>
         </td>
       </tr>`;
@@ -1515,6 +1574,113 @@ async function deleteProduct(id, name) {
   if (!confirm(`Permanently delete "${name}"?\n\nThis also removes its variants, images and reviews and cannot be undone. Past orders keep their records.\n\nTip: to only hide it, set the product Inactive instead.`)) return;
   try { await call('DELETE', `/products/${id}`); toast('Product deleted'); loadProducts(); }
   catch (e) { toast(e.message, 'error'); }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SECTION J2 — PRODUCT PHOTO MANAGER (add / arrange / re-tag / remove)
+───────────────────────────────────────────────────────────── */
+let _pmId = null;
+let _pmImages = [];
+let _pmColours = [];
+
+// Build <option> list for a colour <select>. `selected` (colour name) is preselected.
+function pmColourOptions(selected) {
+  const opts = ['<option value="">All colours (general)</option>'];
+  for (const c of _pmColours) {
+    const sel = (selected || '') === c.colour ? ' selected' : '';
+    opts.push(`<option value="${escH(c.colour)}"${sel}>${escH(c.colour)}</option>`);
+  }
+  return opts.join('');
+}
+
+async function openPhotoManager(id, name) {
+  _pmId = id;
+  document.getElementById('pm-prod-id').value = id;
+  document.getElementById('pm-prod-name').textContent = name || '';
+  document.getElementById('pm-files').value = '';
+  document.getElementById('pm-grid').innerHTML = '<div class="pm-empty">Loading…</div>';
+  openModal('m-photos');
+  await loadPhotoManager(id);
+}
+
+async function loadPhotoManager(id) {
+  try {
+    const d = await call('GET', `/products/${id}/images`);
+    _pmImages = d.images || [];
+    _pmColours = d.colours || [];
+    document.getElementById('pm-colour').innerHTML = pmColourOptions('');
+    renderPhotoGrid();
+  } catch (e) { toast('Failed to load photos: ' + e.message, 'error'); }
+}
+
+function renderPhotoGrid() {
+  const grid = document.getElementById('pm-grid');
+  if (!_pmImages.length) {
+    grid.innerHTML = '<div class="pm-empty">No photos yet — upload some above.</div>';
+    return;
+  }
+  grid.innerHTML = _pmImages.map((img, i) => `
+    <div class="pm-card">
+      <div class="pm-card__img">
+        <span class="pm-card__pos">#${i + 1}</span>
+        <button class="pm-card__rm" title="Remove photo" onclick="removeProductPhoto(${img.id})"><i class="ti ti-trash"></i></button>
+        <img src="${img.url}" alt="">
+        <div class="pm-card__move">
+          <button title="Move left" onclick="pmMove(${img.id},-1)" ${i === 0 ? 'disabled' : ''}><i class="ti ti-chevron-left"></i></button>
+          <button title="Move right" onclick="pmMove(${img.id},1)" ${i === _pmImages.length - 1 ? 'disabled' : ''}><i class="ti ti-chevron-right"></i></button>
+        </div>
+      </div>
+      <div class="pm-card__ft">
+        <select onchange="reassignPhotoColour(${img.id}, this.value)">${pmColourOptions(img.colour)}</select>
+      </div>
+    </div>`).join('');
+}
+
+async function addProductPhotos() {
+  if (!_pmId) return;
+  const input = document.getElementById('pm-files');
+  if (!input.files.length) { toast('Choose at least one photo', 'error'); return; }
+  const fd = new FormData();
+  fd.append('colour', document.getElementById('pm-colour').value || '');
+  for (const f of input.files) fd.append('images', f);
+  try {
+    await call('POST', `/products/${_pmId}/images`, fd, true);
+    toast('Photos added');
+    input.value = '';
+    await loadPhotoManager(_pmId);
+    loadProducts();   // refresh the table thumbnail
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+async function removeProductPhoto(imgId) {
+  if (!confirm('Remove this photo? This permanently deletes the image file.')) return;
+  try {
+    await call('DELETE', `/products/${_pmId}/images/${imgId}`);
+    toast('Photo removed');
+    await loadPhotoManager(_pmId);
+    loadProducts();
+  } catch (e) { toast(e.message, 'error'); }
+}
+
+// Move a photo left (-1) or right (+1), resequence locally, then persist.
+function pmMove(imgId, dir) {
+  const idx = _pmImages.findIndex(x => x.id == imgId);
+  const swap = idx + dir;
+  if (idx < 0 || swap < 0 || swap >= _pmImages.length) return;
+  [_pmImages[idx], _pmImages[swap]] = [_pmImages[swap], _pmImages[idx]];
+  renderPhotoGrid();
+  call('PATCH', `/products/${_pmId}/images/order`, { orderedIds: _pmImages.map(x => x.id) })
+    .then(() => { toast('Order updated'); loadProducts(); })
+    .catch(e => { toast(e.message, 'error'); loadPhotoManager(_pmId); });
+}
+
+async function reassignPhotoColour(imgId, colour) {
+  try {
+    await call('PATCH', `/products/${_pmId}/images/${imgId}`, { colour });
+    const img = _pmImages.find(x => x.id == imgId);
+    if (img) img.colour = colour || null;
+    toast('Photo updated');
+  } catch (e) { toast(e.message, 'error'); loadPhotoManager(_pmId); }
 }
 
 /* ─────────────────────────────────────────────────────────────

@@ -1,5 +1,17 @@
 const Product = require('../models/Product');
 const path = require('path');
+const fs = require('fs');
+
+const PRODUCTS_DIR = path.join(__dirname, '../uploads/products');
+
+// Remove a product image file from disk. Guards against path traversal by
+// taking only the basename, and never throws if the file is already gone.
+function unlinkProductImage(url) {
+  if (!url) return;
+  const filePath = path.join(PRODUCTS_DIR, path.basename(url));
+  if (path.dirname(filePath) !== PRODUCTS_DIR) return; // outside the uploads dir → skip
+  fs.promises.unlink(filePath).catch(() => {});
+}
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -143,9 +155,78 @@ exports.uploadColourImages = async (req, res, next) => {
     const { colour } = req.body;
     if (!colour) return res.status(400).json({ success: false, message: 'colour required' });
     if (!req.files || !req.files.length) return res.status(400).json({ success: false, message: 'No images uploaded' });
-    for (let i = 0; i < req.files.length; i++) {
-      await Product.addImage(req.params.id, `/uploads/products/${req.files[i].filename}`, i, null, colour);
+    // Append after existing photos so a colour's images don't reset the gallery order.
+    let sort = await Product.nextImageSort(req.params.id);
+    for (const f of req.files) {
+      await Product.addImage(req.params.id, `/uploads/products/${f.filename}`, sort++, null, colour);
     }
     res.json({ success: true, message: `Uploaded ${req.files.length} image(s)` });
+  } catch (e) { next(e); }
+};
+
+// ── Photo manager (admin) — list / add / arrange / re-tag / remove ─────────
+
+exports.getImages = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    const images = await Product.getImages(req.params.id);
+    // Distinct colour groups on this product, so the UI can offer them as tags.
+    const colours = [...new Map(
+      (product.variants || []).map(v => [v.colour, { colour: v.colour, colour_hex: v.colour_hex }])
+    ).values()];
+    res.json({ success: true, data: { images, colours } });
+  } catch (e) { next(e); }
+};
+
+// Add one or more photos, optionally tagged to a colour group ('' = general).
+exports.addImages = async (req, res, next) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+    if (!req.files || !req.files.length) return res.status(400).json({ success: false, message: 'No images uploaded' });
+    const colour = req.body.colour ? String(req.body.colour).trim() : null;
+    let sort = await Product.nextImageSort(req.params.id);
+    for (const f of req.files) {
+      await Product.addImage(req.params.id, `/uploads/products/${f.filename}`, sort++, null, colour);
+    }
+    res.status(201).json({ success: true, message: `Added ${req.files.length} photo(s)` });
+  } catch (e) { next(e); }
+};
+
+// Persist the gallery arrangement. Body: { orderedIds: [imgId, …] }.
+exports.reorderImages = async (req, res, next) => {
+  try {
+    const { orderedIds } = req.body;
+    if (!Array.isArray(orderedIds)) {
+      return res.status(400).json({ success: false, message: 'orderedIds[] required' });
+    }
+    await Product.setImageOrder(req.params.id, orderedIds.map(Number).filter(Number.isInteger));
+    res.json({ success: true, message: 'Order updated' });
+  } catch (e) { next(e); }
+};
+
+// Re-tag an image to a colour group ('' / null = general image shown for all colours).
+exports.updateImage = async (req, res, next) => {
+  try {
+    const img = await Product.findImage(req.params.imgId);
+    if (!img || String(img.product_id) !== String(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Image not found' });
+    }
+    const colour = req.body.colour ? String(req.body.colour).trim() : null;
+    await Product.setImageColour(req.params.imgId, colour);
+    res.json({ success: true, message: 'Photo updated' });
+  } catch (e) { next(e); }
+};
+
+exports.deleteImage = async (req, res, next) => {
+  try {
+    const img = await Product.findImage(req.params.imgId);
+    if (!img || String(img.product_id) !== String(req.params.id)) {
+      return res.status(404).json({ success: false, message: 'Image not found' });
+    }
+    await Product.deleteImage(req.params.imgId);
+    unlinkProductImage(img.url);
+    res.json({ success: true, message: 'Photo removed' });
   } catch (e) { next(e); }
 };

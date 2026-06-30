@@ -120,6 +120,15 @@ router.delete('/products/:id', adminMiddleware, productCtrl.delete);
 // Colour images (must be before /:id/variants to avoid param conflict)
 router.post('/products/:id/colour-images', adminMiddleware, upload, productCtrl.uploadColourImages);
 
+// Product photo manager — list / add / arrange / re-tag / remove.
+// `/images/order` is registered before `/images/:imgId` so "order" is never
+// matched as an image id.
+router.get('/products/:id/images', adminMiddleware, productCtrl.getImages);
+router.post('/products/:id/images', adminMiddleware, upload, productCtrl.addImages);
+router.patch('/products/:id/images/order', adminMiddleware, productCtrl.reorderImages);
+router.patch('/products/:id/images/:imgId', adminMiddleware, productCtrl.updateImage);
+router.delete('/products/:id/images/:imgId', adminMiddleware, productCtrl.deleteImage);
+
 // Home-section flags (New Arrivals / Best Sellers selection) + arrangement
 router.patch('/products/home-order', adminMiddleware, productCtrl.setHomeOrder);
 router.patch('/products/:id/home-flags', adminMiddleware, productCtrl.setHomeFlags);
