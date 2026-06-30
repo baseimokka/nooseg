@@ -229,27 +229,53 @@ const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancel
 const PAYMENT_STATUSES = ['pending', 'paid', 'refunded', 'pending_verification', 'verified', 'rejected'];
 
 exports.updateStatus = async (req, res, next) => {
+  const conn = await pool.getConnection();
   try {
     const { orderStatus, paymentStatus, adminNotes } = req.body;
 
-    const order = await Order.findById(req.params.id);
-    if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
-
     if (orderStatus !== undefined && !ORDER_STATUSES.includes(orderStatus)) {
+      conn.release();
       return res.status(400).json({ success: false, message: 'Invalid order status' });
     }
     if (paymentStatus !== undefined && !PAYMENT_STATUSES.includes(paymentStatus)) {
+      conn.release();
       return res.status(400).json({ success: false, message: 'Invalid payment status' });
     }
 
+    await conn.beginTransaction();
+
+    // Lock the order row so two concurrent cancels can't both restock.
+    const [[order]] = await conn.execute(
+      'SELECT order_status, payment_status, admin_notes FROM orders WHERE id = ? FOR UPDATE',
+      [req.params.id]
+    );
+    if (!order) {
+      await conn.rollback();
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const newOrderStatus = orderStatus !== undefined ? orderStatus : order.order_status;
+
+    // Return stock only on the FIRST transition into 'cancelled' (never double-restock).
+    if (newOrderStatus === 'cancelled' && order.order_status !== 'cancelled') {
+      await Order.restockItems(conn, req.params.id);
+    }
+
     // Only overwrite fields that were actually provided (no undefined binds).
-    await Order.updateStatus(req.params.id, {
-      orderStatus:  orderStatus  !== undefined ? orderStatus  : order.order_status,
+    await Order.updateStatus(conn, req.params.id, {
+      orderStatus:  newOrderStatus,
       paymentStatus: paymentStatus !== undefined ? paymentStatus : order.payment_status,
       adminNotes:   adminNotes   !== undefined ? adminNotes   : order.admin_notes
     });
+
+    await conn.commit();
     res.json({ success: true, message: 'Updated' });
-  } catch (e) { next(e); }
+  } catch (e) {
+    await conn.rollback();
+    next(e);
+  } finally {
+    conn.release();
+  }
 };
 
 // Admin — approve / reject a manual payment

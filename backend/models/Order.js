@@ -89,11 +89,23 @@ async function addItem(conn, { orderId, productId, variantId, productName, varia
   );
 }
 
-async function updateStatus(id, { orderStatus, paymentStatus, adminNotes }) {
-  await pool.execute(
+async function updateStatus(conn, id, { orderStatus, paymentStatus, adminNotes }) {
+  await conn.execute(
     'UPDATE orders SET order_status = ?, payment_status = ?, admin_notes = ? WHERE id = ?',
     [orderStatus, paymentStatus, adminNotes || null, id]
   );
 }
 
-module.exports = { getByUser, getAll, findById, create, addItem, updateStatus, verifyPayment };
+// Return every line's quantity back to inventory (used when an order is cancelled).
+// Skips items whose variant was deleted (variant_id IS NULL).
+async function restockItems(conn, orderId) {
+  await conn.execute(
+    `UPDATE inventory inv
+       JOIN order_items oi ON oi.variant_id = inv.variant_id
+        SET inv.stock = inv.stock + oi.quantity
+      WHERE oi.order_id = ? AND oi.variant_id IS NOT NULL`,
+    [orderId]
+  );
+}
+
+module.exports = { getByUser, getAll, findById, create, addItem, updateStatus, restockItems, verifyPayment };
